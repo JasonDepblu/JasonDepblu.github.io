@@ -1,0 +1,26 @@
+---
+layout: default
+---
+<article>
+    <h1>{{ page.title }}</h1>
+    <p class="post-meta">
+        发布日期: {{ page.date | date: "%Y-%m-%d" }}
+        {% if page.categories %}
+        分类:
+        {% for category in page.categories %}
+        {{ category }}
+        {% endfor %}
+        {% endif %}
+    </p>
+
+    {{ content }}
+
+    {% if page.tags %}
+    <div class="tags">
+        标签:
+        {% for tag in page.tags %}
+        <span class="tag">{{ tag }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+</article>

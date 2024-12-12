@@ -1,0 +1,191 @@
+---
+layout: default
+---
+<div class="home">
+  <!-- 轮播组件 -->
+  <div class="carousel">
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <img src="{{ '/assets/images/slide1.jpg' | relative_url }}" alt="首页图片1">
+        <div class="carousel-caption">欢迎来到我的博客</div>
+      </div>
+      <div class="carousel-item">
+        <img src="{{ '/assets/images/slide2.jpg' | relative_url }}" alt="首页图片2">
+        <div class="carousel-caption">技术研究与分享</div>
+      </div>
+      <div class="carousel-item">
+        <img src="{{ '/assets/images/slide3.jpg' | relative_url }}" alt="首页图片3">
+        <div class="carousel-caption">学术论文解读</div>
+      </div>
+    </div>
+
+    <button class="carousel-control prev">←</button>
+    <button class="carousel-control next">→</button>
+  </div>
+
+  <!-- 最新文章部分 -->
+  <h2>最新文章</h2>
+  <div class="post-grid">
+    {% for post in site.posts limit:6 %}
+      <article class="post-card">
+        <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+        <div class="post-meta">
+          <span class="date">{{ post.date | date: "%Y-%m-%d" }}</span>
+          {% if post.categories %}
+            <span class="categories">分类: {{ post.categories | join: ", " }}</span>
+          {% endif %}
+        </div>
+        <div class="excerpt">
+          {{ post.excerpt | strip_html | truncatewords: 30 }}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+/* 轮播样式 */
+.carousel {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto 2rem;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.carousel-inner {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+
+.carousel-item {
+  flex: 0 0 100%;
+  position: relative;
+}
+
+.carousel-item img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+
+.carousel-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+.carousel-control {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.7);
+  border: none;
+  padding: 1rem;
+  cursor: pointer;
+  font-size: 1.5rem;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+
+.carousel-control:hover {
+  background: rgba(255,255,255,0.9);
+}
+
+.prev {
+  left: 1rem;
+}
+
+.next {
+  right: 1rem;
+}
+
+/* 文章卡片样式 */
+.post-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.post-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-5px);
+}
+
+.post-card h3 {
+  margin: 0 0 1rem;
+}
+
+.post-card a {
+  color: #333;
+  text-decoration: none;
+}
+
+.post-meta {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.excerpt {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* 标题样式 */
+h2 {
+  text-align: center;
+  margin: 2rem 0;
+  color: #333;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const carousel = document.querySelector('.carousel-inner');
+  const items = document.querySelectorAll('.carousel-item');
+  const prevBtn = document.querySelector('.prev');
+  const nextBtn = document.querySelector('.next');
+  let currentIndex = 0;
+
+  function updateCarousel() {
+    carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
+  }
+
+  prevBtn.addEventListener('click', () => {
+    currentIndex = currentIndex === 0 ? items.length - 1 : currentIndex - 1;
+    updateCarousel();
+  });
+
+  nextBtn.addEventListener('click', () => {
+    currentIndex = currentIndex === items.length - 1 ? 0 : currentIndex + 1;
+    updateCarousel();
+  });
+
+  // 自动播放
+  setInterval(() => {
+    currentIndex = currentIndex === items.length - 1 ? 0 : currentIndex + 1;
+    updateCarousel();
+  }, 5000);
+});
+</script>

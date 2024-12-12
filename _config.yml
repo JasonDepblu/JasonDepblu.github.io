@@ -1,0 +1,47 @@
+# Site settings
+title: Jason's Blog
+email: depblugz@gmail.com
+description: >- 
+  Write an awesome description for your new site here. You can edit this
+  line in _config.yml. It will appear in your document head meta (for
+  Google search results) and in your feed.xml site description.
+baseurl: ""
+url: ""
+github_username: jekyll
+
+# Build settings
+remote_theme: jekyll/minima
+plugins:
+  - jekyll-feed
+
+# Syntax highlighting
+highlighter: rouge
+
+# Sass settings
+sass:
+  style: compressed
+
+# Default layout settings
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+  - scope:
+      path: "index.html"
+    values:
+      layout: "home"
+
+# Exclude from processing
+exclude:
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/

@@ -1,0 +1,90 @@
+/*
+Error: Invalid CSS after "...in-bottom: math": expected ";", was ".div($spacing-u..."
+        on line 115 of /Users/depblu/.gem/ruby/3.3.5/gems/jekyll-theme-minima-0.1.1/_sass/minima/_layouts.scss
+        from line 7 of /Users/depblu/.gem/ruby/3.3.5/gems/jekyll-theme-minima-0.1.1/_sass/minima.scss
+        from line 1 of main.scss
+
+110:   padding: $spacing-unit 0;
+111: }
+112: 
+113: .footer-heading {
+114:   @include relative-font-size(1.125);
+115:   margin-bottom: math.div($spacing-unit, 2);
+116: }
+117: 
+118: .contact-list,
+119: .social-media-list {
+120:   list-style: none;
+
+Backtrace:
+/Users/depblu/.gem/ruby/3.3.5/gems/jekyll-theme-minima-0.1.1/_sass/minima/_layouts.scss:115
+/Users/depblu/.gem/ruby/3.3.5/gems/jekyll-theme-minima-0.1.1/_sass/minima.scss:7
+main.scss:1
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:1308:in `expected'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:1238:in `expected'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:1233:in `tok!'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:815:in `block in try_declaration'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:1284:in `rethrow'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:820:in `try_declaration'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:743:in `declaration_or_ruleset'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:708:in `block_child'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:700:in `block_contents'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:689:in `block'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:681:in `ruleset'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:707:in `block_child'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:700:in `block_contents'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:137:in `stylesheet'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/scss/parser.rb:41:in `parse'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/engine.rb:414:in `_to_tree'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/engine.rb:321:in `to_tree'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:323:in `block in visit_import'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:88:in `block in with_import'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:135:in `with_frame'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:88:in `with_import'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:322:in `visit_import'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `visit'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `block in visit'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:79:in `block in with_base'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:135:in `with_frame'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:79:in `with_base'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `visit'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:325:in `block (2 levels) in visit_import'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:325:in `map'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:325:in `block in visit_import'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:88:in `block in with_import'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:135:in `with_frame'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:88:in `with_import'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:322:in `visit_import'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `visit'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `block in visit'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:79:in `block in with_base'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:135:in `with_frame'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/stack.rb:79:in `with_base'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:158:in `visit'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `block in visit_children'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `map'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:52:in `visit_children'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:167:in `block in visit_children'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:179:in `with_environment'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:166:in `visit_children'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `block in visit'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:186:in `visit_root'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/base.rb:36:in `visit'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:157:in `visit'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/visitors/perform.rb:10:in `visit'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/root_node.rb:36:in `css_tree'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/tree/root_node.rb:29:in `render_with_sourcemap'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/engine.rb:389:in `_render_with_sourcemap'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/engine.rb:307:in `render_with_sourcemap'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/exec/sass_scss.rb:387:in `run'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/exec/sass_scss.rb:63:in `process_result'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/exec/base.rb:50:in `parse'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/lib/sass/exec/base.rb:18:in `parse!'
+/Users/depblu/.gem/ruby/3.3.5/gems/sass-3.7.4/bin/sass:13:in `<top (required)>'
+/Users/depblu/.gem/ruby/3.3.5/bin/sass:25:in `load'
+/Users/depblu/.gem/ruby/3.3.5/bin/sass:25:in `<main>'
+*/
+body:before {
+  white-space: pre;
+  font-family: monospace;
+  content: "Error: Invalid CSS after \"...in-bottom: math\": expected \";\", was \".div($spacing-u...\"\A         on line 115 of /Users/depblu/.gem/ruby/3.3.5/gems/jekyll-theme-minima-0.1.1/_sass/minima/_layout.scss\A         from line 7 of /Users/depblu/.gem/ruby/3.3.5/gems/jekyll-theme-minima-0.1.1/_sass/minima.scss\A         from line 1 of main.scss\A \A 110:   padding: $spacing-unit 0;\A 111: }\A 112: \A 113: .footer-heading {\A 114:   @include relative-font-size(1.125);\A 115:   margin-bottom: math.div($spacing-unit, 2);\A 116: }\A 117: \A 118: .contact-list,\A 119: .social-media-list {\A 120:   list-style: none;"; }

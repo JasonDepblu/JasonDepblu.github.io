@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ page.title }}</title>
+    <style>
+        body {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: sans-serif;
+        }
+        header, footer {
+            text-align: center;
+            padding: 20px 0;
+        }
+        main {
+            margin: 20px 0;
+        }
+    </style>
+<head>
+    <!-- 其他标签 -->
+    <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+</head>
+
+<body>
+    <header>
+        <h1>我的博客</h1>
+    </header>
+
+    <main>
+        {{ content }}
+    </main>
+
+    <footer>
+        <p>&copy; 2024 我的博客</p>
+    </footer>
+</body>
+</html>

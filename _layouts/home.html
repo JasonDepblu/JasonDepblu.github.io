@@ -30,7 +30,8 @@ layout: default
       <article class="post-card">
 <!--        <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>-->
         <a href="{{ post.url | relative_url }}">
-        <img src="{{ '/assets/images/post1.png' | relative_url }}" alt="{{ post.title }}">
+          <!-- 动态加载文章封面图片，若无封面则显示默认图片 -->
+          <img src="{{ post.image | default: '/assets/images/default.png' | relative_url }}" alt="{{ post.title }}">
         </a>
         <h3>{{ post.title }}</h3>
         <div class="post-meta">
@@ -52,7 +53,7 @@ layout: default
 .carousel {
   position: relative;
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto 2rem;
   overflow: hidden;
   border-radius: 8px;
@@ -124,14 +125,23 @@ layout: default
 /*  padding: 2rem;*/
 /*}*/
 
+.home {
+  max-width: 1200px; /* 页面内容的最大宽度 */
+  margin: 0 auto; /* 居中页面内容 */
+  padding: 0 1rem; /* 添加左右内边距，防止内容贴边 */
+  box-sizing: border-box; /* 包括 padding 在内 */
+}
+
 /* 文章卡片网格布局样式 */
 .post-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* 减小最小宽度 */
-  gap: 1.5rem; /* 减小间距 */
-  padding: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* 每列最小宽度 250px */
+  gap: 4rem; /* 卡片间距 */
+  padding: 1.5rem; /* 网格内部的边距 */
   max-width: 1200px; /* 限制最大宽度 */
+  width: 100%; /* 确保宽度适配父容器 */
   margin: 0 auto; /* 居中显示 */
+  box-sizing: border-box; /* 包括 padding */
 }
 
 /*.post-card {*/

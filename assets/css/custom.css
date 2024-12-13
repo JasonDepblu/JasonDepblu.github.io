@@ -30,3 +30,12 @@ a:hover {
         grid-template-columns: 1fr;
     }
 }
+
+.custom-img {
+  width: 600px;
+  height: auto;
+  border: 1px solid #ddd; /* 可选，添加边框 */
+  border-radius: 5px; /* 可选，圆角效果 */
+  display: block; /* 让图片成为块级元素 */
+  margin: 0 auto; /* 上下外边距为0，左右外边距自动分配 */
+}

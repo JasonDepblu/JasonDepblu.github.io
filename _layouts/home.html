@@ -23,12 +23,16 @@ layout: default
     <button class="carousel-control next">→</button>
   </div>
 
-  <!-- 最新文章部分 -->
+  <!-- new post -->
   <h2>New Post</h2>
   <div class="post-grid">
     {% for post in site.posts limit:6 %}
       <article class="post-card">
-        <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+<!--        <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>-->
+        <a href="{{ post.url | relative_url }}">
+        <img src="{{ '/assets/images/post1.jpg' | relative_url }}" alt="{{ post.title }}">
+        </a>
+        <h3>{{ post.title }}</h3>
         <div class="post-meta">
           <span class="date">{{ post.date | date: "%Y-%m-%d" }}</span>
           {% if post.categories %}
@@ -112,20 +116,40 @@ layout: default
   right: 1rem;
 }
 
-/* 文章卡片样式 */
+/*!* 文章卡片样式 *!*/
+/*.post-grid {*/
+/*  display: grid;*/
+/*  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));*/
+/*  gap: 2rem;*/
+/*  padding: 2rem;*/
+/*}*/
+
+/* 文章卡片网格布局样式 */
 .post-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 2rem;
-  padding: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* 减小最小宽度 */
+  gap: 1.5rem; /* 减小间距 */
+  padding: 1.5rem;
+  max-width: 1200px; /* 限制最大宽度 */
+  margin: 0 auto; /* 居中显示 */
 }
 
+/*.post-card {*/
+/*  background: white;*/
+/*  padding: 1.5rem;*/
+/*  border-radius: 8px;*/
+/*  box-shadow: 0 2px 8px rgba(0,0,0,0.1);*/
+/*  transition: transform 0.2s ease;*/
+/*}*/
+
+/* 文章卡片样式 */
 .post-card {
   background: white;
-  padding: 1.5rem;
+  padding: 1rem; /* 减小内边距 */
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   transition: transform 0.2s ease;
+  width: 100%; /* 确保卡片宽度不超过网格单元 */
 }
 
 .post-card:hover {
@@ -136,21 +160,52 @@ layout: default
   margin: 0 0 1rem;
 }
 
+/*.post-card a {*/
+/*  color: #333;*/
+/*  text-decoration: none;*/
+/*}*/
+
+/* 图片容器样式 */
 .post-card a {
-  color: #333;
-  text-decoration: none;
+  display: block;
+  width: 100%;
+  overflow: hidden; /* 防止图片溢出 */
+  border-radius: 4px;
+}
+
+/* 图片样式 */
+.post-card img {
+  width: 100%;
+  height: 160px; /* 固定高度 */
+  object-fit: cover;
+  display: block; /* 消除图片底部间隙 */
+}
+
+/* 调整文字内容的间距 */
+.post-card h3 {
+  font-size: 1.1rem; /* 减小标题字号 */
+  margin: 0.8rem 0;
 }
 
 .post-meta {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 1rem;
+  font-size: 0.8rem; /* 减小元信息字号 */
 }
 
 .excerpt {
-  color: #666;
-  line-height: 1.6;
+  font-size: 0.9rem; /* 减小摘要字号 */
+  line-height: 1.4;
 }
+
+/*.post-meta {*/
+/*  font-size: 0.9rem;*/
+/*  color: #666;*/
+/*  margin-bottom: 1rem;*/
+/*}*/
+
+/*.excerpt {*/
+/*  color: #666;*/
+/*  line-height: 1.6;*/
+/*}*/
 
 /* 标题样式 */
 h2 {

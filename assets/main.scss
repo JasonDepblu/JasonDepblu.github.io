@@ -24,3 +24,13 @@ body {
   background-color: $primary-color;
   padding: 10px 20px;
 }
+
+/* 假设图片的父容器是 .image-container */
+.image-container {
+  width: 300px; /* 设置容器的宽度 */
+}
+
+.image-container img {
+  max-width: 100%;
+  height: auto;
+}

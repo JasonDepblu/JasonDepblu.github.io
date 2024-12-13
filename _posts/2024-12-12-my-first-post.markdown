@@ -2,11 +2,9 @@
 layout: post
 title: Reasoning_with_REinforced_Fine-Tuning
 date: 2024-12-12
-categories: [jekyll, papers]
+categories: [LLM, papers]
 tags: [first, post]
 ---
-
-这是文章的内容。
 
 # 论文解析：《REFT: Reasoning with REinforced Fine-Tuning》
 

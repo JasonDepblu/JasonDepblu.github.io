@@ -4,6 +4,7 @@ title: Reasoning_with_REinforced_Fine-Tuning
 date: 2024-12-12
 categories: [LLM, papers]
 tags: [first, post]
+image: /assets/images/post1.png
 ---
 
 # 论文解析：《REFT: Reasoning with REinforced Fine-Tuning》

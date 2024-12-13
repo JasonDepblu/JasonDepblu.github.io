@@ -1,13 +1,12 @@
 # Site settings
 title: Jason's Blog
 email: depblugz@gmail.com
-description: >- 
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+description: >-
+  We can only see a short distance ahead, 
+  but we can see plenty there that needs to be done！
 baseurl: ""
 url: "https://JasonDepblu.github.io"
-github_username: jekyll
+github_username: Jason
 
 # Build settings
 remote_theme: jekyll/minima
@@ -34,6 +33,12 @@ defaults:
       path: "index.html"
     values:
       layout: "home"
+
+kramdown:
+  syntax_highlighter_opts:
+    block: true
+    inline: true
+  input: GFM
 
 # Exclude from processing
 exclude:

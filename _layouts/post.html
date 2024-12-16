@@ -1,26 +1,47 @@
 ---
-layout: default
+layout: post
 ---
-<article>
-    <h1>{{ page.title }}</h1>
-    <p class="post-meta">
-        发布日期: {{ page.date | date: "%Y-%m-%d" }}
-        {% if page.categories %}
-        分类:
-        {% for category in page.categories %}
-        {{ category }}
-        {% endfor %}
+
+<body class="post-layout">
+<!--     Header -->
+    <header class="header">
+      <div class="container">
+        <span class="logo">🌟 Jason's Blog</span>
+        <nav class="nav">
+          <ul>
+            {% for item in site.data.navigation %}
+              <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
+            {% endfor %}
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <article>
+        <h1>{{ page.title }}</h1>
+        <div class="post-meta">
+          <span class="post-date">Date: {{ page.date | date: "%B %d, %Y" }}</span> |
+          <span class="reading-time">Estimated Reading Time: {{ page.reading_time | default: '5 min' }}</span> |
+          <span class="post-author">Author: {{ page.author | default: 'Unknown' }}</span>
+        </div>
+        <main class="container">
+            {{ content }}
+        </main>
+        {% if page.tags %}
+        <div class="tags">
+            标签:
+            {% for tag in page.tags %}
+            <span class="tag">{{ tag }}</span>
+            {% endfor %}
+        </div>
         {% endif %}
-    </p>
+    </article>
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; {{ site.time | date: "%Y" }} {{ site.title }}</p>
+    </footer>
+</body>
 
-    {{ content }}
 
-    {% if page.tags %}
-    <div class="tags">
-        标签:
-        {% for tag in page.tags %}
-        <span class="tag">{{ tag }}</span>
-        {% endfor %}
-    </div>
-    {% endif %}
-</article>
+<link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">

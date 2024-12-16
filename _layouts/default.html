@@ -9,40 +9,35 @@
 </script>
 
 <!DOCTYPE html>
-<html>
-<head>
-    <title>{{ page.title }}</title>
-    <style>
-        body {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            font-family: sans-serif;
-        }
-        header, footer {
-            text-align: center;
-            padding: 20px 0;
-        }
-        main {
-            margin: 20px 0;
-        }
-    </style>
-<head>
-    <!-- 其他标签 -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site.title }}</title>
     <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
-</head>
-
-<body>
-    <header>
-        <h1>Jason's Blog</h1>
+    <link rel="icon" href="favicon.ico">
+  </head>
+  <body class="{% if page.layout == 'post' %}post-layout{% else %}default-layout{% endif %}">
+<!--     Header -->
+    <header class="header">
+      <div class="container">
+        <span class="logo">🌟 Jason's Blog</span>
+        <nav class="nav">
+          <ul>
+            {% for item in site.data.navigation %}
+              <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
+            {% endfor %}
+          </ul>
+        </nav>
+      </div>
     </header>
-
-    <main>
-        {{ content }}
+    <!--   Main Content -->
+    <main class="container">
+      {{ content }}
     </main>
-
-    <footer>
-        <p>&copy; 2024 Jason's Blog</p>
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; {{ site.time | date: "%Y" }} {{ site.title }}</p>
     </footer>
-</body>
+  </body>
 </html>

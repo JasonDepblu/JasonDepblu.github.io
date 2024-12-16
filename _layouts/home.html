@@ -1,256 +1,35 @@
 ---
 layout: default
 ---
-<div class="home">
-  <!-- 轮播组件 -->
-  <div class="carousel">
-    <div class="carousel-inner">
-      <div class="carousel-item active">
-        <img src="{{ '/assets/images/slide1.png' | relative_url }}" alt="首页图片1">
-        <div class="carousel-caption">Jason's Blog</div>
-      </div>
-      <div class="carousel-item">
-        <img src="{{ '/assets/images/slide2.jpg' | relative_url }}" alt="首页图片2">
-        <div class="carousel-caption">AI Chat</div>
-      </div>
-      <div class="carousel-item">
-        <img src="{{ '/assets/images/slide3.jpg' | relative_url }}" alt="首页图片3">
-        <div class="carousel-caption">Papers share</div>
-      </div>
-    </div>
 
-    <button class="carousel-control prev">←</button>
-    <button class="carousel-control next">→</button>
+<div class="home">
+  <!-- 欢迎语 -->
+  <div class="welcome-section">
+    <h1>👋Welcome to Jason's Blog</h1>
+    <p>Hi, this is Jason. Sharing papers, projects, and ideas here since 2024. Enjoy!</p>
+    <div class="social-icons">
+      <a href="https://github.com/JasonDepblu" target="_blank">GitHub</a>
+      <a href="https://twitter.com/Jason" target="_blank">Twitter</a>
+      <a href="/feed.xml">RSS</a>
+    </div>
   </div>
 
-  <!-- new post -->
-  <h2>New Post</h2>
   <div class="post-grid">
-    {% for post in site.posts limit:6 %}
-      <article class="post-card">
-<!--        <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>-->
+    {% for post in site.posts limit:12 %}
+      <post-card class="post-card">
         <a href="{{ post.url | relative_url }}">
-          <!-- 动态加载文章封面图片，若无封面则显示默认图片 -->
-          <img src="{{ post.image | default: '/assets/images/default.png' | relative_url }}" alt="{{ post.title }}">
+          <h3>{{ post.title }}</h3>
         </a>
-        <h3>{{ post.title }}</h3>
+        <p class="excerpt">{{ post.excerpt | truncatewords: 25 }}</p>
         <div class="post-meta">
-          <span class="date">{{ post.date | date: "%Y-%m-%d" }}</span>
-          {% if post.categories %}
-            <span class="categories">分类: {{ post.categories | join: ", " }}</span>
-          {% endif %}
+          <span class="post-date">Date: {{ post.date | date: "%B %d, %Y" }}</span> |
+          <span class="reading-time">Estimated Reading Time: {{ post.reading_time | default: '5 min' }}</span> |
+          <span class="post-author">Author: {{ post.author | default: 'Unknown' }}</span>
         </div>
-        <div class="excerpt">
-          {{ post.excerpt | strip_html | truncatewords: 30 }}
-        </div>
-      </article>
+      </post-card>
     {% endfor %}
   </div>
 </div>
 
-<style>
-/* 轮播样式 */
-.carousel {
-  position: relative;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto 2rem;
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.carousel-inner {
-  display: flex;
-  transition: transform 0.5s ease;
-}
-
-.carousel-item {
-  flex: 0 0 100%;
-  position: relative;
-}
-
-.carousel-item img {
-  width: 100%;
-  height: 400px;
-  object-fit: cover;
-}
-
-.carousel-caption {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0,0,0,0.5);
-  color: white;
-  padding: 1rem;
-  text-align: center;
-}
-
-.carousel-control {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255,255,255,0.7);
-  border: none;
-  padding: 1rem;
-  cursor: pointer;
-  font-size: 1.5rem;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s ease;
-}
-
-.carousel-control:hover {
-  background: rgba(255,255,255,0.9);
-}
-
-.prev {
-  left: 1rem;
-}
-
-.next {
-  right: 1rem;
-}
-
-/*!* 文章卡片样式 *!*/
-/*.post-grid {*/
-/*  display: grid;*/
-/*  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));*/
-/*  gap: 2rem;*/
-/*  padding: 2rem;*/
-/*}*/
-
-.home {
-  max-width: 1200px; /* 页面内容的最大宽度 */
-  margin: 0 auto; /* 居中页面内容 */
-  padding: 0 1rem; /* 添加左右内边距，防止内容贴边 */
-  box-sizing: border-box; /* 包括 padding 在内 */
-}
-
-/* 文章卡片网格布局样式 */
-.post-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* 每列最小宽度 250px */
-  gap: 4rem; /* 卡片间距 */
-  padding: 1.5rem; /* 网格内部的边距 */
-  max-width: 1200px; /* 限制最大宽度 */
-  width: 100%; /* 确保宽度适配父容器 */
-  margin: 0 auto; /* 居中显示 */
-  box-sizing: border-box; /* 包括 padding */
-}
-
-/*.post-card {*/
-/*  background: white;*/
-/*  padding: 1.5rem;*/
-/*  border-radius: 8px;*/
-/*  box-shadow: 0 2px 8px rgba(0,0,0,0.1);*/
-/*  transition: transform 0.2s ease;*/
-/*}*/
-
-/* 文章卡片样式 */
-.post-card {
-  background: white;
-  padding: 1rem; /* 减小内边距 */
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
-  width: 100%; /* 确保卡片宽度不超过网格单元 */
-}
-
-.post-card:hover {
-  transform: translateY(-5px);
-}
-
-.post-card h3 {
-  margin: 0 0 1rem;
-}
-
-/*.post-card a {*/
-/*  color: #333;*/
-/*  text-decoration: none;*/
-/*}*/
-
-/* 图片容器样式 */
-.post-card a {
-  display: block;
-  width: 100%;
-  overflow: hidden; /* 防止图片溢出 */
-  border-radius: 4px;
-}
-
-/* 图片样式 */
-.post-card img {
-  width: 100%;
-  height: 160px; /* 固定高度 */
-  object-fit: cover;
-  display: block; /* 消除图片底部间隙 */
-}
-
-/* 调整文字内容的间距 */
-.post-card h3 {
-  font-size: 1.1rem; /* 减小标题字号 */
-  margin: 0.8rem 0;
-}
-
-.post-meta {
-  font-size: 0.8rem; /* 减小元信息字号 */
-}
-
-.excerpt {
-  font-size: 0.9rem; /* 减小摘要字号 */
-  line-height: 1.4;
-}
-
-/*.post-meta {*/
-/*  font-size: 0.9rem;*/
-/*  color: #666;*/
-/*  margin-bottom: 1rem;*/
-/*}*/
-
-/*.excerpt {*/
-/*  color: #666;*/
-/*  line-height: 1.6;*/
-/*}*/
-
-/* 标题样式 */
-h2 {
-  text-align: center;
-  margin: 2rem 0;
-  color: #333;
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  const carousel = document.querySelector('.carousel-inner');
-  const items = document.querySelectorAll('.carousel-item');
-  const prevBtn = document.querySelector('.prev');
-  const nextBtn = document.querySelector('.next');
-  let currentIndex = 0;
-
-  function updateCarousel() {
-    carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
-  }
-
-  prevBtn.addEventListener('click', () => {
-    currentIndex = currentIndex === 0 ? items.length - 1 : currentIndex - 1;
-    updateCarousel();
-  });
-
-  nextBtn.addEventListener('click', () => {
-    currentIndex = currentIndex === items.length - 1 ? 0 : currentIndex + 1;
-    updateCarousel();
-  });
-
-  // 自动播放
-  setInterval(() => {
-    currentIndex = currentIndex === items.length - 1 ? 0 : currentIndex + 1;
-    updateCarousel();
-  }, 5000);
-});
-</script>
+<link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">

@@ -1,10 +1,10 @@
 # Site settings
-title: Jason's Blog
+title: Jason'Blog
 email: depblugz@gmail.com
 description: >-
   We can only see a short distance ahead, 
   but we can see plenty there that needs to be done！
-baseurl: ""
+baseurl: "/myblog"
 url: "https://JasonDepblu.github.io"
 github_username: Jason
 
@@ -14,6 +14,7 @@ plugins:
   - jekyll-feed
   - jekyll-sitemap
   - jekyll-seo-tag
+  - jekyll-read-time
 
 # Syntax highlighting
 highlighter: rouge
@@ -39,6 +40,14 @@ kramdown:
     block: true
     inline: true
   input: GFM
+
+collections:
+  navigation:
+    output: true
+
+markdown: kramdown
+
+excerpt_separator: "<!--more-->"
 
 # Exclude from processing
 exclude:

@@ -1,13 +1,14 @@
 ---
 layout: post
-title: Reasoning_with_REinforced_Fine-Tuning
+title: Reasoning with REinforced Fine-Tuning
 date: 2024-12-12
+reading_time: 15 min
+author: Jason Deng
 categories: [LLM, papers]
 tags: [first, post]
-image: /assets/images/post1.png
+image: ../assets/images/post1.png
+excerpt: "《REFT: Reasoning with REinforced Fine-Tuning》提出了一种基于强化学习与微调相结合的创新方法，用以提升大语言模型（LLM）的推理能力。该方法旨在通过对推理路径的细化设计和多层次优化，在复杂推理任务中实现更高的准确性、解释性和效率。"
 ---
-
-# 论文解析：《REFT: Reasoning with REinforced Fine-Tuning》
 
 ### **论文主题**
 
@@ -31,7 +32,7 @@ image: /assets/images/post1.png
 
 论文提出了一种强化微调（REFT）框架，其核心思想包括：✨📈✨
 
-![REFT训练框架示意图](/assets/images/img.png){: .custom-img }
+![REFT训练框架示意图]( {{ "/assets/images/img.png" | relative_url }}){: img }
 
 1.**结合监督微调和强化学习**：
     - **监督微调 (Supervised Fine-Tuning, SFT)**：利用标注数据进行初步任务适配，学习基本的任务能力。🎯
@@ -45,7 +46,7 @@ image: /assets/images/post1.png
 4. **推理路径优化**：
     - 针对逐步推理（Step-by-Step Reasoning）中的逻辑不一致问题，通过奖励信号显式鼓励模型生成逻辑严谨、路径清晰的推理过程。🌟
 
-![推理路径对比示例](/assets/images/img_1.png){: .custom-img }
+![推理路径对比示例]( {{ "/assets/images/img_1.png" | relative_url }}){: img }
 
 ---
 
@@ -74,7 +75,7 @@ image: /assets/images/post1.png
 
 实验结果表明，REFT在多个推理任务中均显著超越现有方法：✨📊✨
 
-![实验结果表格](/assets/images/img_2.png){: .custom-img }
+![实验结果表格]( {{ "/assets/images/img_2.png" | relative_url }}){: img }
 
 1. **标准任务测试**：在HotpotQA和GSM8K等推理基准数据集上，REFT模型在准确率和推理路径质量评分上分别提升了5%-10%。📊
 2. **数据效率**：在有限标注数据条件下，REFT仍能有效提升性能，显示出对低资源场景的适应能力。📉

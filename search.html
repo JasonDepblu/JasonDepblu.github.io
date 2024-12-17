@@ -1,0 +1,38 @@
+---
+layout: post
+title: Search
+permalink: /search/
+date: 2024-12-3
+author: Jason
+---
+
+<h1>Search</h1>
+<input type="text" id="search-input" placeholder="Search..." autofocus>
+<ul id="search-results"></ul>
+
+<script>
+  async function fetchPosts() {
+    const response = await fetch('/search.json');
+    return response.json();
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const input = document.getElementById('search-input');
+    const results = document.getElementById('search-results');
+    const posts = await fetchPosts();
+
+    input.addEventListener('input', () => {
+      const query = input.value.toLowerCase();
+      const filteredPosts = posts.filter(post =>
+        post.title.toLowerCase().includes(query) ||
+        post.content.toLowerCase().includes(query)
+      );
+
+      results.innerHTML = filteredPosts.map(post =>
+        `<li>
+            <a href="${ post.url | relative_url }">${post.title}</a> - ${post.date}
+        </li>`
+      ).join('');
+    });
+  });
+</script>

@@ -1,0 +1,28 @@
+---
+layout: post
+title: Tags
+permalink: /tags/
+date: 2024-12-03
+author: Jason
+---
+
+<ul>
+    {% for tag in site.tags %}
+        <li>
+            <a href="#{{ tag[0] | slugify }}">{{ tag[0] }}</a> ({{ tag[1].size }})
+        </li>
+    {% endfor %}
+</ul>
+
+<hr>
+
+{% for tag in site.tags %}
+    <h2 id="{{ tag[0] | slugify }}">{{ tag[0] }}</h2>
+    <ul>
+        {% for post in tag[1] %}
+            <li>
+                <a href="{{ post.url | relative_url }}">{{ post.title }}</a> - {{ post.date | date: "%B %d, %Y" }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endfor %}

@@ -6,4 +6,6 @@ author: Jason
 permalink: /contact/
 ---
 
-### My mail: depblugz@gmail.com 
+#### My mail: depblugz@gmail.com 
+
+#### WeChat ID: djq_33794569

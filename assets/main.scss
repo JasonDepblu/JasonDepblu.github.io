@@ -9,7 +9,20 @@ $spacing-unit: 30px;
 }
 
 $primary-color: #333;
+$default-bg: #ebebeb;
+$post-bg: #ffffff;
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: $default-bg;
+
+  &.post-layout {
+    background-color: $post-bg;
+  }
+}
 
 .wrapper {
   padding-right: calc($spacing-unit / 2);

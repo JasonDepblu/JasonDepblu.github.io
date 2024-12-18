@@ -1,4 +1,117 @@
 
+.default-layout {
+  font-family: "Apple Braille", sans-serif;
+  background: #ebebeb;
+  primary: #111;    /* 修改主要颜色 */
+  /*content: #444;    !* 修改正文内容颜色 *!*/
+}
+
+/* 特定页面变量覆盖 */
+.post-layout {
+  font-family: "Apple Braille", sans-serif;
+  background: #ffffff; /* 修改背景颜色 */
+  primary: #111;    /* 修改主要颜色 */
+  /*content: #444;    !* 修改正文内容颜色 *!*/
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+.header.default-layout { background-color: #ebebeb; }
+.header.post-layout { background-color: #fff; }
+
+
+.header .container {
+  display: flex; /* 设置 container 为 flex 布局 */
+  justify-content: space-between; /* 左右分布 */
+  align-items: center; /* 垂直居中 */
+  width: 100%; /* 确保占据整个父容器宽度 */
+  max-width: 1000px; /* 设置最大宽度，防止过于拉伸 */
+  margin: 0 auto; /* 居中对齐 */
+}
+
+/* LOGO 样式 */
+.header .container .logo {
+  font-size: 1.2rem; /* 字体大小 */
+  font-weight: bold; /* 字体加粗 */
+  /*text-decoration: none; !* 移除下划线 *!*/
+  /*color: #333; !* 字体颜色 *!*/
+}
+
+/* 导航菜单样式 */
+.header .container .nav ul {
+  display: flex; /* 水平排列导航项 */
+  list-style: none; /* 移除默认的列表样式 */
+  margin: 0; /* 移除默认外边距 */
+  padding: 0; /* 移除默认内边距 */
+  gap: 6px; /* 设置导航项之间的间距 */
+}
+
+.nav ul li {
+  margin: 0; /* 移除默认外边距 */
+}
+
+.nav ul li a {
+  text-decoration: none; /* 移除下划线 */
+  color: #333; /* 设置文字颜色 */
+  font-size: 1.2rem; /* 设置字体大小 */
+  font-weight: bold; /* 字体粗细 */
+  padding: 8px 12px; /* 增大点击区域 */
+  transition: color 0.3s ease, border-bottom 0.3s ease; /* 添加交互效果 */
+}
+
+.nav ul li a:hover,
+.nav ul li a:focus {
+  color: #000; /* 鼠标悬停时字体颜色变化 */
+  border-bottom: 2px solid #000; /* 鼠标悬停时添加下划线 */
+}
+
+.custom-img {
+  width: 600px;
+  height: auto;
+  border: 1px solid #ddd; /* 可选，添加边框 */
+  border-radius: 5px; /* 可选，圆角效果 */
+  display: block; /* 让图片成为块级元素 */
+  margin: 0 auto; /* 上下外边距为0，左右外边距自动分配 */
+}
+
+/**
+ * Site footer
+ */
+.footer {
+  border-top: 1px;
+  display: flex; /* 设置 container 为 flex 布局 */
+  justify-content: center; /* 左右分布 */
+  align-items: center; /* 垂直居中 */
+  padding: 30px 0;
+}
+
+.entry-footer {
+  background-color: #f8f9fa;
+  padding: 10px 0;
+  text-align: center;
+}
+
+.social-icons a {
+  margin: 0 10px;
+  color: #333; /* 默认颜色 */
+  transition: color 0.3s ease;
+}
+
+.social-icons a:hover {
+  color: #0073e6; /* 鼠标悬停时的颜色 */
+}
+
+.social-icons svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor; /* 使用链接颜色 */
+}
+
+
 
  /*链接样式：已访问状态与正常状态一致*/
 a:link,

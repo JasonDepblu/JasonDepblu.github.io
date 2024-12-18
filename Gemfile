@@ -4,7 +4,8 @@ source "https://rubygems.org"
 gem "jekyll"
 
 # GitHub Pages
-gem "github-pages", group: :jekyll_plugins
+# gem "github-pages", group: :jekyll_plugins
+gem "github-pages", "~> 228", group: :jekyll_plugins
 
 # Plugins
 group :jekyll_plugins do

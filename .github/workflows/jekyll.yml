@@ -2,31 +2,34 @@ name: Jekyll site CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ simple_one ]
   pull_request:
-    branches: [ main ]
+    branches: [ simple_one ]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04  # 临时锁定到 Ubuntu 22.04
 
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: '3.0'
-        bundler-cache: true
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1  # 确保与本地 Ruby 版本一致
 
-    - name: Install dependencies
-      run: bundle install
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle install
 
-    - name: Build site
-      run: bundle exec jekyll build
+      - name: Build Jekyll site
+        run: |
+          bundle exec jekyll build
 
-    - name: Deploy
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./_site
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site

@@ -20,8 +20,8 @@
   align-items: center;
   padding: 1rem 2rem;
 }
-.header.default-layout { background-color: #ebebeb; }
-.header.post-layout { background-color: #fff; }
+body.header.default-layout { background-color: #ebebeb; }
+body.header.post-layout { background-color: #fff; }
 
 
 .header .container {

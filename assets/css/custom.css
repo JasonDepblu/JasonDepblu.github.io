@@ -35,7 +35,7 @@ body.header.post-layout { background-color: #fff; }
 
 /* LOGO 样式 */
 .header .container .logo {
-  font-size: 1.2rem; /* 字体大小 */
+  font-size: 1.4rem; /* 字体大小 */
   font-weight: bold; /* 字体加粗 */
   /*text-decoration: none; !* 移除下划线 *!*/
   /*color: #333; !* 字体颜色 *!*/
@@ -58,7 +58,7 @@ body.header.post-layout { background-color: #fff; }
   text-decoration: none; /* 移除下划线 */
   color: #333; /* 设置文字颜色 */
   font-size: 1.2rem; /* 设置字体大小 */
-  font-weight: bold; /* 字体粗细 */
+  /*font-weight: bold; !* 字体粗细 *!*/
   padding: 8px 12px; /* 增大点击区域 */
   transition: color 0.3s ease, border-bottom 0.3s ease; /* 添加交互效果 */
 }

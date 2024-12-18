@@ -12,7 +12,7 @@ author: Jason
 
 <script>
   async function fetchPosts() {
-    const response = await fetch('/search.json');
+    const response = await fetch('/myblog/search.json');
     return response.json();
   }
 
@@ -29,9 +29,9 @@ author: Jason
       );
 
       results.innerHTML = filteredPosts.map(post =>
-        `<li>
+        <li>
             <a href="${ post.url | relative_url }">${post.title}</a> - ${post.date}
-        </li>`
+        </li>
       ).join('');
     });
   });

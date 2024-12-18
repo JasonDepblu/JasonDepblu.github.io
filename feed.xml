@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="https://jasondepblu.github.io/myblog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://jasondepblu.github.io/myblog/" rel="alternate" type="text/html" /><updated>2024-12-18T12:25:04+00:00</updated><id>https://jasondepblu.github.io/myblog/feed.xml</id><title type="html">Jason’Blog</title><subtitle>We can only see a short distance ahead,  but we can see plenty there that needs to be done！</subtitle><entry><title type="html">Reasoning with REinforced Fine-Tuning</title><link href="https://jasondepblu.github.io/myblog/llm/papers/2024/12/12/my-first-post.html" rel="alternate" type="text/html" title="Reasoning with REinforced Fine-Tuning" /><published>2024-12-12T00:00:00+00:00</published><updated>2024-12-12T00:00:00+00:00</updated><id>https://jasondepblu.github.io/myblog/llm/papers/2024/12/12/my-first-post</id><content type="html" xml:base="https://jasondepblu.github.io/myblog/llm/papers/2024/12/12/my-first-post.html">&lt;h3 id=&quot;论文主题&quot;&gt;&lt;strong&gt;论文主题&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;《REFT: Reasoning with REinforced Fine-Tuning》提出了一种基于强化学习与微调相结合的创新方法，用以提升大语言模型（LLM）的推理能力。该方法旨在通过对推理路径的细化设计和多层次优化，在复杂推理任务中实现更高的准确性、解释性和效率。✨📘✨&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;解决的问题&quot;&gt;&lt;strong&gt;解决的问题&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;当前的大语言模型在逻辑推理和复杂任务执行方面仍存在显著瓶颈。具体而言：✨&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;推理能力的局限性&lt;/strong&gt;：虽然预训练语言模型具备一定的通用推理能力，但在处理复杂、多步骤的推理任务时，往往存在逻辑不一致或结果不可靠的问题。📉&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;标注数据的匮乏&lt;/strong&gt;：推理任务通常需要大规模高质量的标注数据，而这些数据的获取成本较高，且不同任务的数据分布具有高度不平衡性。📋&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;优化目标的不明确性&lt;/strong&gt;：传统微调方法依赖于静态的监督信号，难以全面优化模型的推理路径和结果质量。✨&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;该论文旨在通过引入强化学习中的奖励机制，为推理路径质量和任务结果提供动态反馈，以突破上述限制。🚀&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;解决思路&quot;&gt;&lt;strong&gt;解决思路&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;论文提出了一种强化微调（REFT）框架，其核心思想包括：✨📈✨&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/myblog/assets/images/img.png&quot; alt=&quot;REFT训练框架示意图&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;1.&lt;strong&gt;结合监督微调和强化学习&lt;/strong&gt;：
+    - &lt;strong&gt;监督微调 (Supervised Fine-Tuning, SFT)&lt;/strong&gt;：利用标注数据进行初步任务适配，学习基本的任务能力。🎯
+    - &lt;strong&gt;强化学习信号 (Reinforcement Signals)&lt;/strong&gt;：通过奖励函数将任务目标形式化为定量信号，并通过策略优化方法改进模型输出。🎢&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;奖励机制的设计&lt;/strong&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;奖励函数不仅关注最终任务结果的准确性，还对生成过程中的逻辑性、一致性以及效率进行综合评价。🎨&lt;/li&gt;
+      &lt;li&gt;通过设计分步骤和全局奖励函数，提升模型的过程推理能力。🛠️&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;两阶段优化流程&lt;/strong&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;第一阶段&lt;/strong&gt;：采用监督微调完成基础任务能力的训练。⚙️&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;第二阶段&lt;/strong&gt;：结合策略梯度方法（如PPO），引入奖励机制进行强化优化。📊&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;推理路径优化&lt;/strong&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;针对逐步推理（Step-by-Step Reasoning）中的逻辑不一致问题，通过奖励信号显式鼓励模型生成逻辑严谨、路径清晰的推理过程。🌟&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&quot;/myblog/assets/images/img_1.png&quot; alt=&quot;推理路径对比示例&quot; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;针对过程cot的奖励设计reward-for-chain-of-thought-reasoning&quot;&gt;&lt;strong&gt;针对过程CoT的奖励设计（Reward for Chain-of-Thought Reasoning）&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;设计初衷&lt;/strong&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;推理路径质量的重要性&lt;/strong&gt;：链式推理 (Chain-of-Thought, CoT) 方法已被证明在复杂任务中具有显著优势。然而，模型生成的CoT路径容易因中间步骤的不合理性或冗余性而导致结果偏差。💡&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;现有方法的局限性&lt;/strong&gt;：传统奖励机制通常仅基于最终任务结果，而忽略了推理过程中的路径质量，这种简化可能导致模型优化不足。✨&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;奖励机制的实现&lt;/strong&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;分步骤奖励&lt;/strong&gt;：逐步评估推理路径的中间结果，包括每个步骤的逻辑性、一致性和与上下文的相关性。🛡️&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;全局奖励&lt;/strong&gt;：综合评估推理路径的整体合理性和最终答案的准确性。🏆&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;负向激励&lt;/strong&gt;：对冗余步骤、逻辑错误或路径复杂度过高的生成进行惩罚。❌&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;技术实现&lt;/strong&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;通过任务特定的规则（例如基于领域知识的验证机制）自动化评估推理步骤的合理性。📜&lt;/li&gt;
+      &lt;li&gt;借助高级语言模型（如GPT-4）进行推理路径的逻辑一致性和解释性评分。🧠&lt;/li&gt;
+      &lt;li&gt;将局部与全局信号结合，确保生成路径在满足逻辑性的同时兼顾任务效率。🔧&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;效果与意义&lt;/strong&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;提升推理路径的逻辑性&lt;/strong&gt;：奖励机制有效减少了路径中的冗余和错误，显著提升了推理的可靠性。📈&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;增强模型的解释性&lt;/strong&gt;：生成的路径结构清晰且易于理解，为任务的透明化提供了基础。📚&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;提高任务结果的准确性&lt;/strong&gt;：通过优化推理路径，最终任务结果的质量得到显著提升。✅&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;适应复杂推理需求&lt;/strong&gt;：该奖励机制在多步计算、多跳推理等复杂任务中表现出优越性。📊✨&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;效果分析&quot;&gt;&lt;strong&gt;效果分析&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;实验结果表明，REFT在多个推理任务中均显著超越现有方法：✨📊✨&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/myblog/assets/images/img_2.png&quot; alt=&quot;实验结果表格&quot; /&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;标准任务测试&lt;/strong&gt;：在HotpotQA和GSM8K等推理基准数据集上，REFT模型在准确率和推理路径质量评分上分别提升了5%-10%。📊&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;数据效率&lt;/strong&gt;：在有限标注数据条件下，REFT仍能有效提升性能，显示出对低资源场景的适应能力。📉&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;可解释性分析&lt;/strong&gt;：REFT生成的推理路径不仅质量更高，而且逻辑结构清晰，显著改善了用户对模型行为的理解。🌟&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;远望&quot;&gt;&lt;strong&gt;远望&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;跨领域扩展&lt;/strong&gt;：进一步探索REFT方法在多模态推理、跨领域知识整合等复杂任务中的适用性。✨&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;优化训练效率&lt;/strong&gt;：通过改进奖励设计和优化算法，降低强化学习阶段的计算开销。🚀&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;实际应用场景验证&lt;/strong&gt;：在法律分析、医学诊断和金融决策等高复杂度场景中测试REFT的可行性和有效性。✨&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;多维度信号融合&lt;/strong&gt;：引入多模态数据或特定领域知识以增强模型的推理多样性与准确性。📊&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;长期推理性能研究&lt;/strong&gt;：针对跨文档、跨段落信息整合等长期推理任务展开深入研究。🌟&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;总结&quot;&gt;&lt;strong&gt;总结&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;《REFT: Reasoning with REinforced Fine-Tuning》提出了一种创新性的强化微调框架，通过联合优化推理路径和任务结果，显著提升了大语言模型的推理能力。该方法不仅在理论上具有前瞻性，也在实践中展现了广泛的适用潜力，为未来的大规模推理任务提供了新的解决方案。📘🌟📘&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;附图表&quot;&gt;&lt;strong&gt;附图表&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;REFT训练框架示意图&lt;/strong&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;展示监督微调和强化学习阶段的整体流程与关系。🔄&lt;/li&gt;
+      &lt;li&gt;包括奖励信号如何调整模型策略的流程图。📉&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;推理路径对比示例&lt;/strong&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;直观对比传统微调方法与REFT生成的CoT路径，突出逻辑一致性和冗余消除效果。🗺️&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;实验结果表格&lt;/strong&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;详细列出REFT与基线模型在多个数据集上的性能对比，包括准确率、路径质量评分等关键指标。📊📋&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;奖励机制设计图&lt;/strong&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;图解分步骤奖励与全局奖励的设计结构，说明各部分如何协同优化模型性能。📊✨📊&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;</content><author><name>Jason Deng</name></author><category term="LLM" /><category term="papers" /><category term="first" /><category term="post" /><summary type="html">《REFT: Reasoning with REinforced Fine-Tuning》提出了一种基于强化学习与微调相结合的创新方法，用以提升大语言模型（LLM）的推理能力。该方法旨在通过对推理路径的细化设计和多层次优化，在复杂推理任务中实现更高的准确性、解释性和效率。</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jasondepblu.github.io/assets/images/post1.png" /><media:content medium="image" url="https://jasondepblu.github.io/assets/images/post1.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Super Weights in Large Language Model</title><link href="https://jasondepblu.github.io/myblog/llm/papers/2024/12/03/history1-post.html" rel="alternate" type="text/html" title="Super Weights in Large Language Model" /><published>2024-12-03T00:00:00+00:00</published><updated>2024-12-03T00:00:00+00:00</updated><id>https://jasondepblu.github.io/myblog/llm/papers/2024/12/03/history1-post</id><content type="html" xml:base="https://jasondepblu.github.io/myblog/llm/papers/2024/12/03/history1-post.html">&lt;h2 id=&quot;一研究背景与动机&quot;&gt;&lt;strong&gt;一、研究背景与动机&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;h3 id=&quot;11-前期研究基础&quot;&gt;&lt;strong&gt;1.1 前期研究基础&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;大语言模型中的异常值研究主要沿两条线索发展：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;权重异常值研究&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;发现&lt;/strong&gt;：Kovaleva等人(2021)首次在GPT-2中发现了权重异常值，这些异常值在预训练早期即显现，并显著影响模型的输出嵌入向量。&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;挑战&lt;/strong&gt;：禁用这些权重会显著降低性能，但研究未揭示这些权重的具体作用机制和普适性。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;激活异常值研究&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;发现&lt;/strong&gt;：Dettmers等人(2022)发现了大型语言模型中的激活异常值，这些激活对模型的性能、特别是压缩后的表现至关重要。&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;不足&lt;/strong&gt;：这些研究主要集中于激活异常值的特性，未能建立其与权重异常值的因果关系，也未解析异常激活的来源。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;12-研究缺口&quot;&gt;&lt;strong&gt;1.2 研究缺口&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;现有研究在理论和实践上仍存在以下局限：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;理论局限&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	未能建立权重和激活之间的因果链条。&lt;/p&gt;
+
+    &lt;p&gt;•	缺乏对异常值在模型计算中的结构性作用的全面理解。&lt;/p&gt;
+
+    &lt;p&gt;•	对异常值形成的根本机制和跨模型的一致性研究不足。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;实践挑战&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	异常值的识别和保护机制不完善。&lt;/p&gt;
+
+    &lt;p&gt;•	模型压缩和微调时对异常值的处理不当，导致性能损失。&lt;/p&gt;
+
+    &lt;p&gt;•	缺乏稳定控制异常值对模型行为影响的方法。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;本研究目标&lt;/strong&gt;：通过引入Super Weights的概念，统一解释权重异常值与激活异常值的关系，并提出在实际模型优化中的操作指导。&lt;/p&gt;
+
+    &lt;p&gt;&lt;img src=&quot;/myblog/assets/images/super_weights.png&quot; alt=&quot;超级权重示意图&quot; /&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;二研究方法与过程&quot;&gt;&lt;strong&gt;二、研究方法与过程&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;h3 id=&quot;21-super-weights的识别方法&quot;&gt;&lt;strong&gt;2.1 Super Weights的识别方法&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;p&gt;我们采用了以下三阶段方法：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;统计分析阶段&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	异常值筛选标准：幅度显著高于中位数（100倍以上），在不同输入下保持稳定，且分布固定于MLP下投影层。&lt;/p&gt;
+
+    &lt;p&gt;&lt;img src=&quot;/myblog/assets/images/%E5%BC%82%E5%B8%B8%E5%80%BC%E7%AD%9B%E9%80%89%E6%A0%87%E5%87%86.png&quot; alt=&quot;异常值筛选标准.png&quot; /&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	显著性检验：通过Bootstrap重采样和95%置信区间验证这些权重的显著性。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;验证方法&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;线性探测&lt;/strong&gt;：分析权重与激活值的关联性及对信息流动的影响。&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;消融实验&lt;/strong&gt;：通过移除Super Weights和非Super Weights，观察对模型性能的差异影响。&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;机制验证&lt;/strong&gt;：跟踪激活值的传播路径，研究其对注意力机制和概率分布的调节作用。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;跨模型分析&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	在不同规模（7B至70B参数）和架构（LLaMA、Mistral等）的模型中重复实验，验证Super Weights的一致性。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;22-实验设计与验证&quot;&gt;&lt;strong&gt;2.2 实验设计与验证&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;消融实验&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	控制组：完整模型性能作为基准。&lt;/p&gt;
+
+    &lt;p&gt;•	实验组1：移除单个Super Weight。&lt;/p&gt;
+
+    &lt;p&gt;•	实验组2：移除7000个最大非Super Weight。&lt;/p&gt;
+
+    &lt;p&gt;•	实验组3：移除Super Weight但保留Super Activation。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;跨模型验证&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	验证Super Weights的位置、数量及对模型性能的影响是否具有普适性。&lt;/p&gt;
+
+    &lt;p&gt;•	分析模型规模对Super Weights影响强度的调节作用。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;统计分析&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	使用效应量和p值评估实验结果的显著性。&lt;/p&gt;
+
+    &lt;p&gt;•	对比不同模型和任务下的性能变化。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;三核心发现与结果&quot;&gt;&lt;strong&gt;三、核心发现与结果&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;h3 id=&quot;31-定量结果&quot;&gt;&lt;strong&gt;3.1 定量结果&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;LLaMA-7B实验结果&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;TruthfulQA准确率：&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;完整模型&lt;/strong&gt;：41.81%&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;移除Super Weight&lt;/strong&gt;：19.80%&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;移除7000个非Super Weight&lt;/strong&gt;：41.47%&lt;/p&gt;
+
+    &lt;p&gt;困惑度：&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;完整模型&lt;/strong&gt;：5.67&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;移除Super Weight&lt;/strong&gt;：1211.11&lt;/p&gt;
+
+    &lt;p&gt;•	&lt;strong&gt;Super Activation保留&lt;/strong&gt;：476.23&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;跨模型验证结果&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	在多个模型中发现Super Weights的位置固定，作用显著。&lt;/p&gt;
+
+    &lt;p&gt;•	影响强度随模型规模增大而增强，30B以上模型对Super Weights的敏感性更高。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;32-机制发现&quot;&gt;&lt;strong&gt;3.2 机制发现&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;结构性作用&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	Super Weights通过激活值的放大作用影响全网络的注意力模式。&lt;/p&gt;
+
+    &lt;p&gt;•	它们集中于MLP的下投影层，并通过跳跃连接对后续层传播影响。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;功能特征&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	抑制停用词概率，提高关键语义词的权重。&lt;/p&gt;
+
+    &lt;p&gt;&lt;img src=&quot;/myblog/assets/images/stopwords.png&quot; alt=&quot;stopwords.png&quot; /&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	调节注意力机制，维持模型在推理任务中的稳定性。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;四应用价值与实践指导&quot;&gt;&lt;strong&gt;四、应用价值与实践指导&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;h3 id=&quot;41-模型压缩优化&quot;&gt;&lt;strong&gt;4.1 模型压缩优化&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;差异化量化&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	Super Weights保持高精度量化，其他权重采用标准量化策略。&lt;/p&gt;
+
+    &lt;p&gt;•	设置性能基准，平衡压缩率与性能。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;监控与调整&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	动态监控压缩过程中Super Weights的变化。&lt;/p&gt;
+
+    &lt;p&gt;•	通过梯度裁剪和阈值优化降低异常影响。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;42-模型微调指导&quot;&gt;&lt;strong&gt;4.2 模型微调指导&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;保护机制&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	设置Super Weights的学习率下限，避免过度更新。&lt;/p&gt;
+
+    &lt;p&gt;•	使用梯度裁剪限制权重更新幅度。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;实践建议&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	在领域迁移任务中优先保护Super Weights，以确保性能稳定性。&lt;/p&gt;
+
+    &lt;p&gt;•	通过性能监控和调优策略实现动态调整。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;43-架构优化启示&quot;&gt;&lt;strong&gt;4.3 架构优化启示&lt;/strong&gt;&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;模型设计改进&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	在架构设计时增强MLP下投影层的灵活性和适应性。&lt;/p&gt;
+
+    &lt;p&gt;•	针对Super Weights位置进行参数初始化优化。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;预训练策略调整&lt;/strong&gt;&lt;/p&gt;
+
+    &lt;p&gt;•	根据Super Weights的特性调整权重初始化分布，减少早期训练的不稳定性。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;</content><author><name>Jason Deng</name></author><category term="LLM" /><category term="papers" /><category term="history" /><category term="post" /><summary type="html">这篇文章主要讨论了在大型语言模型中引入“超级权重”（Super Weights）这一概念，以增强模型的表现和适应性。 作者介绍了如何通过特殊加权策略，使模型在保持参数数量不变的情况下实现更高的推理能力和泛化性能。 文中同时阐述了相关的实验结果和案例分析，展示了“超级权重”在实际应用中的潜在优势。</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jasondepblu.github.io/assets/images/post1.png" /><media:content medium="image" url="https://jasondepblu.github.io/assets/images/post1.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry></feed>

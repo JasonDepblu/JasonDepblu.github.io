@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # 添加明确的 Ruby 版本要求
-ruby '~> 3.1.6'  # 降低 Ruby 版本要求 3.3.5  3.1.6
+ruby '~> 3.2.2'  # 降低 Ruby 版本要求 3.3.5  3.2.2
 
 # This will help ensure the proper Jekyll version is running.
 gem "jekyll"

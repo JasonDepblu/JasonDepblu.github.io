@@ -179,6 +179,18 @@ a:focus {
   transition: transform 0.3s;
 }
 
+@media (max-width: 768px) {
+    .post-card {
+        padding: 0.8rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .post-card {
+        padding: 0.6rem;
+    }
+}
+
 .post-card:hover {
   transform: translateY(-5px); /* 鼠标悬停效果 */
 }

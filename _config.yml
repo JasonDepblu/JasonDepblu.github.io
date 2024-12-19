@@ -15,6 +15,7 @@ plugins:
   - jekyll-sitemap
   - jekyll-seo-tag
   - jekyll-read-time
+  - jekyll-search
 
 # Syntax highlighting
 highlighter: rouge
@@ -40,6 +41,9 @@ kramdown:
     block: true
     inline: true
   input: GFM
+
+search:
+  path: "/search.json"  # 生成的 search.json 文件路径
 
 collections:
   navigation:

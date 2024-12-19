@@ -7,20 +7,39 @@ author: Jason
 ---
 
 <h1>Search</h1>
-<input type="text" id="search-input" placeholder="Search..." autofocus>
-<ul id="search-results"></ul>
+
+<!-- 添加搜索表单 -->
+<form id="search-form" action="/" method="get">
+  <input type="text" id="search-input" name="q" placeholder="Search" autocomplete="off" autofocus>
+</form>
+
+<!-- 搜索结果容器 -->
+<div id="results-container"></div>
 
 <script>
   async function fetchPosts() {
-    const response = await fetch('/myblog/search.json');
+    // 使用 Jekyll 的 site.baseurl 确保路径正确
+    const response = await fetch('{{ site.baseurl }}/search.json');
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
     return response.json();
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
     const input = document.getElementById('search-input');
-    const results = document.getElementById('search-results');
-    const posts = await fetchPosts();
+    const resultsContainer = document.getElementById('results-container');
 
+    let posts = [];
+    try {
+      posts = await fetchPosts();
+    } catch (error) {
+      console.error('Failed to fetch search.json:', error);
+      resultsContainer.innerHTML = '<p>Failed to load search data.</p>';
+      return;
+    }
+
+    // 处理用户输入并过滤结果
     input.addEventListener('input', () => {
       const query = input.value.toLowerCase();
       const filteredPosts = posts.filter(post =>
@@ -28,11 +47,17 @@ author: Jason
         post.content.toLowerCase().includes(query)
       );
 
-      results.innerHTML = filteredPosts.map(post =>
-        <li>
-            <a href="${ post.url | relative_url }">${post.title}</a> - ${post.date}
-        </li>
-      ).join('');
+      // 显示搜索结果
+      if (filteredPosts.length > 0) {
+        resultsContainer.innerHTML = filteredPosts.map(post => `
+          <div class="search-result">
+            <a href="${post.url}">${post.title}</a> - ${new Date(post.date).toLocaleDateString()}
+            <p>${post.content.slice(0, 100)}...</p> <!-- 可选：显示文章内容的部分 -->
+          </div>
+        `).join('');
+      } else {
+        resultsContainer.innerHTML = '<p>No results found.</p>';
+      }
     });
   });
 </script>

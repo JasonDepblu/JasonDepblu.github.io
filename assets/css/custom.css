@@ -78,6 +78,35 @@ body.header.post-layout { background-color: #fff; }
   /*color: #333; !* 字体颜色 *!*/
 }
 
+/* Default desktop view */
+.logo {
+    display: block;
+}
+
+#menu {
+    display: flex;
+}
+
+/* Mobile view (max-width: 768px) */
+@media (max-width: 768px) {
+    .logo {
+        display: none; /* Hide logo */
+    }
+
+    #nav {
+        display: flex; /* Keep menu visible */
+        flex-grow: 1;
+        justify-content: flex-end;
+    }
+}
+
+/* Further reduction (max-width: 480px) */
+@media (max-width: 480px) {
+    #nav {
+        display: none; /* Hide menu on very small screens */
+    }
+}
+
 /* 导航菜单样式 */
 .header .container .nav ul {
   display: flex; /* 水平排列导航项 */

@@ -10,12 +10,19 @@ github_username: Jason
 
 # Build settings
 remote_theme: jekyll/minima
+
 plugins:
   - jekyll-feed
   - jekyll-sitemap
   - jekyll-seo-tag
   - jekyll-read-time
-  - jekyll-search
+  - jekyll-lunr-js-search
+
+lunr:
+  languages: [en]
+  fields:
+    - title
+    - content
 
 # Syntax highlighting
 highlighter: rouge

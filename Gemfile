@@ -1,11 +1,14 @@
 source "https://rubygems.org"
 
 # 添加明确的 Ruby 版本要求
-ruby '~> 3.2.2'  # 降低 Ruby 版本要求 3.3.5  3.2.2
+ruby '~> 3.3.5'  # 降低 Ruby 版本要求 3.3.5  3.2.2
 
 # This will help ensure the proper Jekyll version is running.
-gem "jekyll"
+gem 'jekyll', '~> 3.9.3' # 或 '~> 5.0.0' 以使用最新稳定版本
+gem 'jekyll-sass-converter'
+gem 'csv'
 
+gem 'sass', '~> 3.7.0'
 
 # GitHub Pages
 # gem "github-pages", group: :jekyll_plugins
@@ -17,8 +20,9 @@ group :jekyll_plugins do
   gem "jekyll-sitemap"
   gem "jekyll-seo-tag"
   gem "jekyll-remote-theme"
-  gem "jekyll-search"
+  gem 'jekyll-lunr-js-search'
 end
+
 
 # Windows and JRuby does not include zoneinfo files, so bundle the tzinfo-data gem
 platforms :mingw, :x64_mingw, :mswin, :jruby do

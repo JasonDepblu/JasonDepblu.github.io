@@ -26,61 +26,61 @@ excerpt: "本文基于新兴范式 Coconut（连续思维链）的引入，深�
 
 #### 1.1 提示工程
 
-- **Jason Wei 等 (2022)：**  
+- **Jason Wei 等 (2022)：“Chain-of-thought prompting elicits reasoning in large language models.”**  
   通过设计思维链提示来引导大语言模型提供完整的推理路径，然后再生成最终答案，在复杂任务中显著提升了性能。
 
-- **Tushar Khot 等 (2022)：**  
+- **Tushar Khot 等 (2022)：“Decomposed prompting: A modular approach for solving complex tasks.”**  
   提出分解提示法，将复杂问题分解为多个子问题，逐步求解。
 
-- **Denny Zhou 等 (2022)：**  
+- **Denny Zhou 等 (2022)：“Least-to-most prompting enables complex reasoning in large language models.”**  
   开发了由简至繁提示法，首先生成子问题，然后按序求解，以捕捉更深层的依赖关系。
 
 #### 1.2 监督式微调
 
-- **Xiang Yue 等 (2023)：**  
+- **Xiang Yue 等 (2023)：“Mammoth: Building math generalist models through hybrid instruction tuning.”**  
   在 Mammoth 项目中引入混合指令调优，提升了数学推理的泛化能力和鲁棒性。
 
-- **Longhui Yu 等 (2023)：**  
+- **Longhui Yu 等 (2023)：“Metamath: Bootstrap your own mathematical questions for large language models.”**  
   Metamath 项目利用众包或自生成数据进行监督式微调，在数学任务中实现了更强的泛化能力。
 
 #### 1.3 强化学习
 
-- **Alex Havrilla 等 (2024)：**  
+- **Alex Havrilla 等 (2024)：“Teaching large language models to reason with reinforcement learning.”**  
   开创性地将强化学习应用于教授大语言模型 CoT 推理。
 
-- **Shibo Hao 等 (2024)：**  
+- **Shibo Hao 等 (2024)：“Reasoning with language model is planning with world model.”**  
   将推理视为结合世界模型的规划过程，增强了动态情境推理能力。
 
-- **Zhihong Shao 等 (2024)：**  
+- **Zhihong Shao 等 (2024)：“Deepseekmath: Pushing the limits of mathematical reasoning in open language models.”**  
   DeepSeekMath 应用强化学习来克服高难度数学场景的局限性。
 
 #### 1.4 Token 分析
 
-- **Aman Madaan 和 Amir Yazdanbakhsh (2022)：**  
+- **Aman Madaan 和 Amir Yazdanbakhsh (2022)：“Text and patterns: For effective chain of thought, it takes two to tango.”**  
   研究了“符号”、“模式”和“文本” token 在引导高效简洁的 CoT 生成中的作用。
 
 #### 1.5 理论分析
 
-- **Guhao Feng 等 (2023)：**  
+- **Guhao Feng 等 (2023)：“Towards revealing the mystery behind chain of thought: A theoretical perspective.”**  
   从理论角度阐述了 CoT 如何增强模型的表达能力和深度。
 
-- **William Merrill 和 Ashish Sabharwal (2023)：**  
+- **William Merrill 和 Ashish Sabharwal (2023)：“The expressive power of transformers with chain of thought.”**  
   研究了引入 CoT 的 Transformer 的扩展表征能力。
 
-- **Zhiyuan Li 等 (2024)：**  
+- **Zhiyuan Li 等 (2024)：“Chain of thought empowers transformers to solve inherently serial problems.”**  
   证明 CoT 帮助 Transformer 解决本质上的顺序性任务，使模型能够“深化”并逐步推理。
 
 ### 2. 关键挑战与改进方向
 
 #### 2.1 规划与搜索问题
 
-- **Yann LeCun (2022)：**  
+- **Yann LeCun (2022)：“A path towards autonomous machine intelligence version 0.9.2.”**  
   探讨了“单路径自回归生成”在复杂任务中的局限性。
 
-- **Yuxi Xie 等 (2023)：**  
+- **Yuxi Xie 等 (2023)：“Self-evaluation guided beam search for reasoning.”**  
   引入自评估引导集束搜索，使模型能在搜索过程中自我评估不同分支的质量，提高推理准确性。
 
-- **Shunyu Yao 等 (2023)：**  
+- **Shunyu Yao 等 (2023)：“Tree of thoughts: Deliberate problem solving with large language models.”**  
   提出思维树 (Tree-of-Thoughts, ToT)，通过树搜索过程显式探索和重访多个推理分支。
 
 ---
@@ -91,50 +91,50 @@ excerpt: "本文基于新兴范式 Coconut（连续思维链）的引入，深�
 
 #### 1.1 隐藏计算研究
 
-- **Sohee Yang 等 (2024)：**  
+- **Sohee Yang 等 (2024)：“Do large language models latently perform multi-hop reasoning?”**  
   研究大语言模型是否在多跳推理任务中隐式编码中间步骤。
 
-- **Eden Biran 等 (2024)：**  
+- **Eden Biran 等 (2024)：“Hopping too late: Exploring the limitations of large language models on multi-hop queries.”**  
   探讨多跳推理中“延迟决策”带来的局限性。
 
-- **Yuval Shalev 等 (2024)：**  
+- **Yuval Shalev 等 (2024)：“Distributional reasoning in llms: Parallel reasoning processes in multi-hop reasoning.”**  
   在多跳任务中发现了隐式并行推理过程的证据。
 
 #### 1.2 CoT 中的“不一致性”
 
-- **Boshi Wang 等 (2022)：**  
+- **Boshi Wang 等 (2022)：“Towards understanding chain-of-thought prompting: An empirical study of what matters.”**  
   实证研究揭示模型生成的“链条”常常偏离实际内部计算，暴露出“表层-深层不匹配”现象。
 
-- **Miles Turpin 等 (2024)：**  
+- **Miles Turpin 等 (2024)： “Language models don’t always say what they think: Unfaithful explanations in chain-of-thought.”**  
   强调了显式解释与真实推理路径之间的差异，引发了对安全性和可信度的思考。
 
 ### 2. 增强潜在推理
 
 #### 2.1 额外 Token 扩展
 
-- **Sachin Goyal 等 (2023)：**  
+- **Sachin Goyal 等 (2023)：“Think before you speak: Training language models with pause tokens.”**  
   主张使用 `<pause>` 等特殊 token 来鼓励模型“思考后回应”，提升推理表现。
 
-- **Jacob Pfau 等 (2024)：**  
+- **Jacob Pfau 等 (2024)：“Let’s think dot by dot: Hidden computation in transformer language models.”**  
   发现在部分并行任务中插入“...”等填充 token 能带来性能提升。
 
 #### 2.2 规划 Token 预测
 
-- **Xinyi Wang 等 (2023)：**  
+- **Xinyi Wang 等 (2023)：“Guiding language model reasoning with planning tokens.”**  
   用规划 token 引导模型生成更有结构的推理链。
 
 #### 2.3 知识蒸馏
 
-- **Yuntian Deng 等 (2023 & 2024)：**  
+- **Yuntian Deng 等 (2023 & 2024)：“Implicit chain of thought reasoning via knowledge distillation.” & “From explicit cot to implicit cot: Learning to internalize cot step by step.”**  
   提出 iCoT（隐式思维链），通过知识蒸馏压缩推理步骤，在不需要显式输出的情况下内化 CoT。
 
-- **Ping Yu 等 (2024)：**  
+- **Ping Yu 等 (2024)：“Distilling system 2 into system 1.”**  
   将显式的“系统 2”推理蒸馏为“系统 1”内部表征，降低推理成本。
 
 ### 3. 方法扩展与优化
 
 - **循环 Transformer：**  
-  - **Angeliki Giannou 等 (2023) 和 Ying Fan 等 (2024)：**  
+  - **Angeliki Giannou 等 (2023) 和 Ying Fan 等 (2024)：“Looped transformers as programmable computers.” & “Looped transformers for length generalization.”**  
     引入循环 Transformer 用于迭代自处理，支持算法任务和长度泛化。这与 Coconut 的状态反馈“递归”推理机制相呼应。
 
 ---

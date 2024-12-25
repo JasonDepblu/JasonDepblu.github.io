@@ -1,4 +1,383 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="https://jasondepblu.github.io/myblog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://jasondepblu.github.io/myblog/" rel="alternate" type="text/html" /><updated>2024-12-19T13:36:04+00:00</updated><id>https://jasondepblu.github.io/myblog/feed.xml</id><title type="html">Jason’Blog</title><subtitle>We can only see a short distance ahead,  but we can see plenty there that needs to be done！</subtitle><entry><title type="html">Reasoning with REinforced Fine-Tuning</title><link href="https://jasondepblu.github.io/myblog/llm/papers/2024/12/12/my-first-post.html" rel="alternate" type="text/html" title="Reasoning with REinforced Fine-Tuning" /><published>2024-12-12T00:00:00+00:00</published><updated>2024-12-12T00:00:00+00:00</updated><id>https://jasondepblu.github.io/myblog/llm/papers/2024/12/12/my-first-post</id><content type="html" xml:base="https://jasondepblu.github.io/myblog/llm/papers/2024/12/12/my-first-post.html">&lt;h3 id=&quot;论文主题&quot;&gt;&lt;strong&gt;论文主题&lt;/strong&gt;&lt;/h3&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.3">Jekyll</generator><link href="https://jasondepblu.github.io/myblog/feed.xml" rel="self" type="application/atom+xml" /><link href="https://jasondepblu.github.io/myblog/" rel="alternate" type="text/html" /><updated>2024-12-25T14:09:11+00:00</updated><id>https://jasondepblu.github.io/myblog/feed.xml</id><title type="html">Jason’Blog</title><subtitle>We can only see a short distance ahead,  but we can see plenty there that needs to be done！</subtitle><entry><title type="html">Coconut：在连续潜在空间中的大语言模型推理范式研究</title><link href="https://jasondepblu.github.io/myblog/llm/papers/2024/12/25/reason-cot-post.html" rel="alternate" type="text/html" title="Coconut：在连续潜在空间中的大语言模型推理范式研究" /><published>2024-12-25T00:00:00+00:00</published><updated>2024-12-25T00:00:00+00:00</updated><id>https://jasondepblu.github.io/myblog/llm/papers/2024/12/25/reason-cot-post</id><content type="html" xml:base="https://jasondepblu.github.io/myblog/llm/papers/2024/12/25/reason-cot-post.html">&lt;p&gt;&lt;strong&gt;Author:&lt;/strong&gt; Shibo Hao, Sainbayar Sukhbaatar, DiJia Su, Xian Li, Zhiting Hu, Jason Weston, Yuandong Tian&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;FAIR at Meta&lt;/li&gt;
+  &lt;li&gt;UC San Diego&lt;br /&gt;
+∗ Work done at Meta&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;URL:&lt;/strong&gt; &lt;a href=&quot;https://arxiv.org/html/2412.06769v2&quot;&gt;https://arxiv.org/html/2412.06769v2&lt;/a&gt;&lt;br /&gt;
+&lt;strong&gt;Title:&lt;/strong&gt; &lt;em&gt;Training Large Language Models to Reason in a Continuous Latent Space&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;一思维链cot推理系统性综述&quot;&gt;一、思维链(CoT)推理：系统性综述&lt;/h2&gt;
+
+&lt;h3 id=&quot;1-方法分类&quot;&gt;1. 方法分类&lt;/h3&gt;
+
+&lt;h4 id=&quot;11-提示工程&quot;&gt;1.1 提示工程&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Jason Wei 等 (2022)：&lt;/strong&gt;&lt;br /&gt;
+通过设计思维链提示来引导大语言模型提供完整的推理路径，然后再生成最终答案，在复杂任务中显著提升了性能。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Tushar Khot 等 (2022)：&lt;/strong&gt;&lt;br /&gt;
+提出分解提示法，将复杂问题分解为多个子问题，逐步求解。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Denny Zhou 等 (2022)：&lt;/strong&gt;&lt;br /&gt;
+开发了由简至繁提示法，首先生成子问题，然后按序求解，以捕捉更深层的依赖关系。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;12-监督式微调&quot;&gt;1.2 监督式微调&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Xiang Yue 等 (2023)：&lt;/strong&gt;&lt;br /&gt;
+在 Mammoth 项目中引入混合指令调优，提升了数学推理的泛化能力和鲁棒性。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Longhui Yu 等 (2023)：&lt;/strong&gt;&lt;br /&gt;
+Metamath 项目利用众包或自生成数据进行监督式微调，在数学任务中实现了更强的泛化能力。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;13-强化学习&quot;&gt;1.3 强化学习&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Alex Havrilla 等 (2024)：&lt;/strong&gt;&lt;br /&gt;
+开创性地将强化学习应用于教授大语言模型 CoT 推理。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Shibo Hao 等 (2024)：&lt;/strong&gt;&lt;br /&gt;
+将推理视为结合世界模型的规划过程，增强了动态情境推理能力。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Zhihong Shao 等 (2024)：&lt;/strong&gt;&lt;br /&gt;
+DeepSeekMath 应用强化学习来克服高难度数学场景的局限性。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;14-token-分析&quot;&gt;1.4 Token 分析&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Aman Madaan 和 Amir Yazdanbakhsh (2022)：&lt;/strong&gt;&lt;br /&gt;
+研究了“符号”、“模式”和“文本” token 在引导高效简洁的 CoT 生成中的作用。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;15-理论分析&quot;&gt;1.5 理论分析&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Guhao Feng 等 (2023)：&lt;/strong&gt;&lt;br /&gt;
+从理论角度阐述了 CoT 如何增强模型的表达能力和深度。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;William Merrill 和 Ashish Sabharwal (2023)：&lt;/strong&gt;&lt;br /&gt;
+研究了引入 CoT 的 Transformer 的扩展表征能力。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Zhiyuan Li 等 (2024)：&lt;/strong&gt;&lt;br /&gt;
+证明 CoT 帮助 Transformer 解决本质上的顺序性任务，使模型能够“深化”并逐步推理。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;2-关键挑战与改进方向&quot;&gt;2. 关键挑战与改进方向&lt;/h3&gt;
+
+&lt;h4 id=&quot;21-规划与搜索问题&quot;&gt;2.1 规划与搜索问题&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Yann LeCun (2022)：&lt;/strong&gt;&lt;br /&gt;
+探讨了“单路径自回归生成”在复杂任务中的局限性。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Yuxi Xie 等 (2023)：&lt;/strong&gt;&lt;br /&gt;
+引入自评估引导集束搜索，使模型能在搜索过程中自我评估不同分支的质量，提高推理准确性。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Shunyu Yao 等 (2023)：&lt;/strong&gt;&lt;br /&gt;
+提出思维树 (Tree-of-Thoughts, ToT)，通过树搜索过程显式探索和重访多个推理分支。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;二大语言模型中的潜在推理隐式推理的新视角&quot;&gt;二、大语言模型中的潜在推理：隐式推理的新视角&lt;/h2&gt;
+
+&lt;h3 id=&quot;1-定义和核心现象&quot;&gt;1. 定义和核心现象&lt;/h3&gt;
+
+&lt;h4 id=&quot;11-隐藏计算研究&quot;&gt;1.1 隐藏计算研究&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Sohee Yang 等 (2024)：&lt;/strong&gt;&lt;br /&gt;
+研究大语言模型是否在多跳推理任务中隐式编码中间步骤。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Eden Biran 等 (2024)：&lt;/strong&gt;&lt;br /&gt;
+探讨多跳推理中“延迟决策”带来的局限性。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Yuval Shalev 等 (2024)：&lt;/strong&gt;&lt;br /&gt;
+在多跳任务中发现了隐式并行推理过程的证据。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;12-cot-中的不一致性&quot;&gt;1.2 CoT 中的“不一致性”&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Boshi Wang 等 (2022)：&lt;/strong&gt;&lt;br /&gt;
+实证研究揭示模型生成的“链条”常常偏离实际内部计算，暴露出“表层-深层不匹配”现象。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Miles Turpin 等 (2024)：&lt;/strong&gt;&lt;br /&gt;
+强调了显式解释与真实推理路径之间的差异，引发了对安全性和可信度的思考。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;2-增强潜在推理&quot;&gt;2. 增强潜在推理&lt;/h3&gt;
+
+&lt;h4 id=&quot;21-额外-token-扩展&quot;&gt;2.1 额外 Token 扩展&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Sachin Goyal 等 (2023)：&lt;/strong&gt;&lt;br /&gt;
+主张使用 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;pause&amp;gt;&lt;/code&gt; 等特殊 token 来鼓励模型“思考后回应”，提升推理表现。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Jacob Pfau 等 (2024)：&lt;/strong&gt;&lt;br /&gt;
+发现在部分并行任务中插入“…”等填充 token 能带来性能提升。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;22-规划-token-预测&quot;&gt;2.2 规划 Token 预测&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Xinyi Wang 等 (2023)：&lt;/strong&gt;&lt;br /&gt;
+用规划 token 引导模型生成更有结构的推理链。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;23-知识蒸馏&quot;&gt;2.3 知识蒸馏&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Yuntian Deng 等 (2023 &amp;amp; 2024)：&lt;/strong&gt;&lt;br /&gt;
+提出 iCoT（隐式思维链），通过知识蒸馏压缩推理步骤，在不需要显式输出的情况下内化 CoT。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Ping Yu 等 (2024)：&lt;/strong&gt;&lt;br /&gt;
+将显式的“系统 2”推理蒸馏为“系统 1”内部表征，降低推理成本。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;3-方法扩展与优化&quot;&gt;3. 方法扩展与优化&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;循环 Transformer：&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;Angeliki Giannou 等 (2023) 和 Ying Fan 等 (2024)：&lt;/strong&gt;&lt;br /&gt;
+引入循环 Transformer 用于迭代自处理，支持算法任务和长度泛化。这与 Coconut 的状态反馈“递归”推理机制相呼应。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;三与-coconut-的整合连接显式和潜在推理&quot;&gt;三、与 Coconut 的整合：连接显式和潜在推理&lt;/h2&gt;
+
+&lt;p&gt;根据选定研究，神经影像学实验表明：在人类执行各类推理任务时，主要负责语言理解和生成的大脑语言网络区域往往并不高度活跃。基于 Coconut（连续思维链）的方法，不仅可以部分映射这种认知现象，也在推理效率上有显著优势。Coconut 通过在连续潜在空间中进行推理，而非依赖传统在自然语言空间中逐步生成推理步骤的思维链方法，引入了一个新的推理范式。&lt;/p&gt;
+
+&lt;p&gt;具体来说，Coconut 利用语言模型的最终隐藏状态作为“连续思维”的表征，直接将其作为后续步骤的输入，而不是将其解码为 token。主要变化和优势包括：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/myblog/assets/images/Figure%201%20A%20comparison%20of%20Chain%20of%20Continuous%20Thought%20(Coconut)%20with%20Chain-of-Thought%20(CoT).png&quot; alt=&quot;Comparison&quot; /&gt;&lt;br /&gt;
+&lt;em&gt;Figure 1: A comparison of Chain of Continuous Thought (Coconut) with Chain-of-Thought (CoT).&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;推理空间的转变&quot;&gt;推理空间的转变&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;传统 CoT：&lt;/strong&gt;&lt;br /&gt;
+依赖自然语言逐步生成推理，在复杂任务中容易导致效率低下和表达限制。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Coconut：&lt;/strong&gt;&lt;br /&gt;
+在潜在空间中运作，更灵活高效，不受语言约束。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;增强的推理能力&quot;&gt;增强的推理能力&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;多路径推理：&lt;/strong&gt;&lt;br /&gt;
+在连续思维中可同时编码多个潜在的下一步，提升需要广泛搜索和回溯的任务表现。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;降低错误传播：&lt;/strong&gt;&lt;br /&gt;
+避免每步显式语言输出，在潜在空间中优化推理路径，减少错误的累积。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;效率提升&quot;&gt;效率提升&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;减少 Token 生成：&lt;/strong&gt;&lt;br /&gt;
+以更少的步骤完成任务，显著减少 Token 生成量。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;潜在空间优化：&lt;/strong&gt;&lt;br /&gt;
+直接使用隐藏状态进行推理，降低解码和编码开销。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;训练与优化&quot;&gt;训练与优化&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;多阶段训练：&lt;/strong&gt;&lt;br /&gt;
+逐步将显式 CoT 转化为连续思维，提高推理能力与训练效率。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;在多个推理任务（尤其是需要复杂规划和搜索的 ProsQA 等场景）中，Coconut 相比传统 CoT 展现出更高的准确率和更少的 Token 生成量。&lt;/p&gt;
+
+&lt;p&gt;相关研究佐证：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Amalric 和 Dehaene (2019)：&lt;/strong&gt;&lt;br /&gt;
+研究非语言区域在逻辑推理任务中的作用。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Monti 等 (2007, 2009, 2012)：&lt;/strong&gt;&lt;br /&gt;
+多项研究强调语言处理与推理的解离。&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Fedorenko 等 (2011)：&lt;/strong&gt;&lt;br /&gt;
+研究发现语言区域在推理过程中的参与度有限，提示了特定领域网络的重要性。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;四coconut-的关键特性与机制&quot;&gt;四、Coconut 的关键特性与机制&lt;/h2&gt;
+
+&lt;h3 id=&quot;1-从显式生成到隐式思考&quot;&gt;1. 从“显式生成”到“隐式思考”&lt;/h3&gt;
+
+&lt;p&gt;与 CoT 的自回归显式搜索（如 ToT）不同，Coconut 能在连续潜在空间中并行保留多个候选路径，与递归推理和内化策略相匹配。它的训练细节进一步凸显了其独特方法：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/myblog/assets/images/Figure%202%20Training%20procedure%20of%20Chain%20of%20Continuous%20Thought%20(Coconut).png&quot; alt=&quot;Comparison&quot; /&gt;&lt;br /&gt;
+&lt;em&gt;Figure 2: Training procedure of Chain of Continuous Thought (Coconut).&lt;/em&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;可微分性与反向传播&lt;/strong&gt;&lt;br /&gt;
+Coconut 的连续思维完全面向可微分，支持通过反向传播进行优化，学习更高效的连续推理表征。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;前向传递&lt;/strong&gt;&lt;br /&gt;
+若当前训练阶段设置了 (n) 个潜在思维，需执行 (n+1) 次前向传递。每次生成新的潜在思维，最后一次传递用于处理剩余文本序列。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;损失计算&lt;/strong&gt;&lt;br /&gt;
+在每次传递里生成新的潜在思维；最后一次前向传递处理任务输出并计算损失。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;顺序与并行化挑战&lt;/strong&gt;&lt;br /&gt;
+KV 缓存可减轻部分重复计算，但因为每次传递依赖前一次结果，无法完全并行化。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;未来优化方向&lt;/strong&gt;&lt;br /&gt;
+提升训练效率仍是研究重点，力求在不损害推理能力的前提下降低计算资源需求。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;2-连接表层语言和潜在推理&quot;&gt;2. 连接“表层语言”和“潜在推理”&lt;/h3&gt;
+
+&lt;p&gt;Coconut 减少了对自然语言形式生成的依赖，避免了显式 CoT 输出中常见的不一致性。&lt;/p&gt;
+
+&lt;h3 id=&quot;3-重新思考规划与搜索&quot;&gt;3. 重新思考“规划与搜索”&lt;/h3&gt;
+
+&lt;p&gt;Coconut 的连续推理过程可被类比为“搜索树”而非线性推理链。它可在潜在空间中保留并评价多条分支，同时基于搜索价值动态调度：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;连续思维与搜索树类比&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;在搜索树中，每个节点代表一个潜在推理状态，分支代表可能的发展路径。&lt;/li&gt;
+      &lt;li&gt;Coconut 可同时对多个路径并行评分并进行剪枝。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;示例（图 7）&lt;/strong&gt;&lt;br /&gt;
+若根节点为 Alex，第一步可探索 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;{lempus, sterpus, zhorpus, grimpus}&lt;/code&gt;；若选择 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lempus&lt;/code&gt; 分支，下一步则从孙节点展开。Coconut 能自动评估哪些分支更有前景。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;与标准 BFS 的区别&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;BFS：&lt;/strong&gt; 统一广度探索前沿节点。&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Coconut：&lt;/strong&gt; 动态优先级评估，在潜在空间评估每个分支的“价值”，更灵活高效。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;语言空间解码&lt;/strong&gt;&lt;br /&gt;
+经过连续思维后，若返回语言空间，模型会解码出可能的推理路径。根据概率分布，可进一步分析其偏好及下一步选择。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;总结：&lt;/strong&gt;&lt;br /&gt;
+Coconut 的优势在于隐式评估与动态调度，使其在需要广泛搜索与规划的复杂任务中具备更高效的推理能力。&lt;/p&gt;
+
+&lt;h3 id=&quot;4-与多阶段训练和自监督的协同效应&quot;&gt;4. 与多阶段训练和自监督的协同效应&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;多阶段训练与分解目标&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;通过多阶段课程将训练目标分解并逐步复杂化，Coconut 在复杂推理任务中表现更佳。&lt;/li&gt;
+      &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;pause&amp;gt;&lt;/code&gt; token 也可结合类似思路在部分场景中获得增益。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;与 iCoT 的比较&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;iCoT（隐式思维链）也使用多阶段训练，但在“计划移除”等细粒度操作上有所差异。&lt;/li&gt;
+      &lt;li&gt;二者方法或可结合，进一步强化模型在潜在空间的推理能力。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;对监督信号的依赖&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;目前 Coconut 训练时依赖显式思维链数据，将其转化为潜在推理目标。&lt;/li&gt;
+      &lt;li&gt;作者提出未来可探索不依赖显式语言链监督的潜在推理策略，使模型更具通用性。&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h4 id=&quot;混合数据策略&quot;&gt;混合数据策略&lt;/h4&gt;
+
+&lt;p&gt;在 Coconut 的多阶段训练中，以 (p = 0.3) 的概率将早期阶段数据混入当前训练阶段，有效防止模型遗忘之前学到的知识：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;连续思维插入&lt;/strong&gt;&lt;br /&gt;
+中间阶段的隐层表征（连续嵌入或“思维”）以一定概率被混入后续训练目标中，保证连续性和统一性。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;目标选择&lt;/strong&gt;&lt;br /&gt;
+这些隐层数据能作为额外监督信号，帮助模型在潜在空间和语言空间间更好地衔接。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;防止遗忘&lt;/strong&gt;&lt;br /&gt;
+混合数据策略可最大程度保留早期训练内容，避免在后续阶段产生“灾难性遗忘”。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;实验显示，该方法能在多阶段复杂推理任务中取得良好平衡，在潜在（隐层）与显式（文本）推理间自由切换。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/myblog/assets/images/Table1_Results_on_three_datasets(GSM8l_ProntoQA_ProsQA).png&quot; alt=&quot;Comparison&quot; /&gt;&lt;br /&gt;
+&lt;em&gt;Table 1: Results on three datasets (GSM8l, ProntoQA, ProsQA).&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;五展望未来推理框架中的多范式集成&quot;&gt;五、展望：未来推理框架中的多范式集成&lt;/h2&gt;
+
+&lt;h3 id=&quot;1-跨范式融合&quot;&gt;1. 跨范式融合&lt;/h3&gt;
+
+&lt;p&gt;将 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;pause&amp;gt;&lt;/code&gt; token、规划 token 与 Coconut 结合使用，可兼顾显式可解释性与隐式并行性，适配更复杂的推理任务。&lt;/p&gt;
+
+&lt;h3 id=&quot;2-自动化搜索与人工干预&quot;&gt;2. 自动化搜索与人工干预&lt;/h3&gt;
+
+&lt;p&gt;将 Coconut 的潜在空间推理嵌入到 ToT 框架中可有效提升搜索效率与准确性，也为人工干预保留了接口。&lt;/p&gt;
+
+&lt;h3 id=&quot;3-通用预训练重新设计&quot;&gt;3. 通用预训练重新设计&lt;/h3&gt;
+
+&lt;p&gt;若在基础模型（如循环 Transformer）中融入“递归”或“连续推理”机制，可能在推理能力上带来跨越式提升。&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;六结论&quot;&gt;六、结论&lt;/h2&gt;
+
+&lt;p&gt;本文通过回顾思维链（CoT）在提示工程、监督式微调、强化学习与理论分析等方面的最新发展，说明了显式推理链在诸多任务中的优势与不足。潜在推理的出现进一步挖掘了内化多跳推理与规划的潜力。&lt;/p&gt;
+
+&lt;p&gt;Coconut 将这两者加以整合，通过多阶段训练与潜在状态反馈，在连续空间中完成推理和规划，不再局限于单一路径的自回归生成方式。在大量需要规划、回溯的复杂任务中，Coconut 展现了突出的灵活性与效率。&lt;/p&gt;
+
+&lt;p&gt;未来，Coconut、iCoT、&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;pause&amp;gt;&lt;/code&gt; token 与循环 Transformer 等技术有望通过更大规模、更多样化的验证不断进化，逐渐弥合“语言空间推理”与“内部模型推理”之间的鸿沟，向真正的灵活、多路径的自主思考推进。&lt;/p&gt;</content><author><name>Jason Deng</name></author><category term="LLM" /><category term="papers" /><category term="reason" /><category term="CoT" /><summary type="html">本文基于新兴范式 Coconut（连续思维链）的引入，深入探讨了大语言模型(LLMs)中思维链(Chain-of-Thought, CoT)推理和潜在推理的分类，这些分类在思维图谱框架中得到了概述。本文旨在总结大语言模型推理领域的发展轨迹和核心挑战。</summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="https://jasondepblu.github.io/assets/images/post1.png" /><media:content medium="image" url="https://jasondepblu.github.io/assets/images/post1.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Reasoning with REinforced Fine-Tuning</title><link href="https://jasondepblu.github.io/myblog/llm/papers/2024/12/12/my-first-post.html" rel="alternate" type="text/html" title="Reasoning with REinforced Fine-Tuning" /><published>2024-12-12T00:00:00+00:00</published><updated>2024-12-12T00:00:00+00:00</updated><id>https://jasondepblu.github.io/myblog/llm/papers/2024/12/12/my-first-post</id><content type="html" xml:base="https://jasondepblu.github.io/myblog/llm/papers/2024/12/12/my-first-post.html">&lt;h3 id=&quot;论文主题&quot;&gt;&lt;strong&gt;论文主题&lt;/strong&gt;&lt;/h3&gt;
 
 &lt;p&gt;《REFT: Reasoning with REinforced Fine-Tuning》提出了一种基于强化学习与微调相结合的创新方法，用以提升大语言模型（LLM）的推理能力。该方法旨在通过对推理路径的细化设计和多层次优化，在复杂推理任务中实现更高的准确性、解释性和效率。✨📘✨&lt;/p&gt;
 

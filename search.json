@@ -1,0 +1,26 @@
+{
+  "posts": [
+    
+    {
+      "title": "Coconut：在连续潜在空间中的大语言模型推理范式研究",
+      "url": "https://jasondepblu.github.io/myblog/llm/papers/2024/12/25/reason-cot-post.html",
+      "date": "2024-12-25",
+      "content": "Author: Shibo Hao, Sainbayar Sukhbaatar, DiJia Su, Xian Li, Zhiting Hu, Jason Weston, Yuandong Tian  FAIR at Meta  UC San Diego∗ Work done at MetaURL: https://arxiv.org/html/2412.06769v2Title: Trai..."
+    },
+    
+    {
+      "title": "Reasoning with REinforced Fine-Tuning",
+      "url": "https://jasondepblu.github.io/myblog/llm/papers/2024/12/12/my-first-post.html",
+      "date": "2024-12-12",
+      "content": "论文主题《REFT: Reasoning with REinforced Fine-Tuning》提出了一种基于强化学习与微调相结合的创新方法，用以提升大语言模型（LLM）的推理能力。该方法旨在通过对推理路径的细化设计和多层次优化，在复杂推理任务中实现更高的准确性、解释性和效率。✨📘✨解决的问题当前的大语言模型在逻辑推理和复杂任务执行方面仍存在显著瓶颈。具体而言：✨  推理能力的局限性：虽然..."
+    },
+    
+    {
+      "title": "Super Weights in Large Language Model",
+      "url": "https://jasondepblu.github.io/myblog/llm/papers/2024/12/03/history1-post.html",
+      "date": "2024-12-03",
+      "content": "一、研究背景与动机1.1 前期研究基础大语言模型中的异常值研究主要沿两条线索发展：      权重异常值研究    •\t发现：Kovaleva等人(2021)首次在GPT-2中发现了权重异常值，这些异常值在预训练早期即显现，并显著影响模型的输出嵌入向量。    •\t挑战：禁用这些权重会显著降低性能，但研究未揭示这些权重的具体作用机制和普适性。        激活异常值研究    •\t发现：D..."
+    }
+    
+  ]
+}

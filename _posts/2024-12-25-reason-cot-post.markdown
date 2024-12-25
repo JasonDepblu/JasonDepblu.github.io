@@ -221,6 +221,7 @@ Coconut 的连续推理过程可被类比为“搜索树”而非线性推理链
 
 2. **示例（图 7）**  
    若根节点为 Alex，第一步可探索 `{lempus, sterpus, zhorpus, grimpus}`；若选择 `lempus` 分支，下一步则从孙节点展开。Coconut 能自动评估哪些分支更有前景。
+![Trees]( {{ "/assets/images/Figure 7 An illustration of the latent search trees.png " | relative_url }}) 
 
 3. **与标准 BFS 的区别**  
    - **BFS：** 统一广度探索前沿节点。  

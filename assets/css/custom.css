@@ -339,14 +339,14 @@ article {
 
 article h1 {
   margin-top: 1.5rem;
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: bold;
   margin-bottom: 1rem; /* 为标题增加下方间距，强调层次 */
 }
 
 /* 二级及以下标题的样式，确保层次分明 */
 article h2 {
-  font-size: 1.75rem;
+  font-size: 1.6rem;
   font-weight: bold;
   margin-top: 2rem;
   margin-bottom: 1rem;
@@ -354,12 +354,36 @@ article h2 {
 }
 
 article h3 {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: bold;
   margin-top: 1.5rem;
   margin-bottom: 1rem;
   color: #333;
 }
+
+article h4 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+article h5 {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+/*article h6 {*/
+/*  font-size: 0.8rem;*/
+/*  font-weight: bold;*/
+/*  margin-top: 1.5rem;*/
+/*  margin-bottom: 1rem;*/
+/*  color: #333;*/
+/*}*/
 
 /* 段落样式：增强可读性 */
 article p {

@@ -43,11 +43,11 @@ defaults:
     values:
       layout: "home"
 
-kramdown:
-  syntax_highlighter_opts:
-    block: true
-    inline: true
-  input: GFM
+#kramdown:
+#  syntax_highlighter_opts:
+#    block: true
+#    inline: true
+#  input: GFM
 
 search:
   path: "/search.json"  # 生成的 search.json 文件路径

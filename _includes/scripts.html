@@ -1,0 +1,13 @@
+document.addEventListener("DOMContentLoaded", function () {
+  const toggles = document.querySelectorAll("details summary");
+  toggles.forEach((toggle) => {
+    toggle.addEventListener("click", function () {
+      // 等待内容加载后触发 MathJax 渲染
+      setTimeout(function () {
+        if (typeof MathJax !== "undefined") {
+          MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+        }
+      }, 100);
+    });
+  });
+});

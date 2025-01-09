@@ -2,6 +2,37 @@
 layout: post
 ---
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ page.title | escape }}</title>
+
+  <!-- MathJax -->
+  <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+        processEscapes: true
+      },
+      "HTML-CSS": {
+      scale: 70  // 调整公式字体大小，默认 100（百分比）
+      },
+      CommonHTML: {
+      scale: 70  // 如果使用 CommonHTML 输出，也需要设置
+      }
+    });
+  </script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+</head>
+
 <body class="post-layout">
 <!--     Header -->
     <header class="header">
@@ -40,8 +71,12 @@ layout: post
     <footer class="footer">
       <p>&copy; {{ site.time | date: "%Y" }} {{ site.title }}</p>
     </footer>
+
+    <!-- Custom JavaScript -->
+    <script src="{{ '/assets/js/main.js' | relative_url }}"></script>
 </body>
+<!--<script src="{{ '/assets/js/main.js' | relative_url }}"></script>-->
 
-
-<!--<link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}">-->
-<link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+<!--&lt;!&ndash;<link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}">&ndash;&gt;-->
+<!--<link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">-->
+</html>

@@ -49,6 +49,11 @@ defaults:
 #    inline: true
 #  input: GFM
 
+kramdown:
+  input: GFM
+  parse_block_html: true
+  math_engine: mathjax
+
 search:
   path: "/search.json"  # 生成的 search.json 文件路径
 

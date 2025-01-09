@@ -8,6 +8,25 @@
   gtag('config', 'G-EKVJPJXV5K');
 </script>
 
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [["$", "$"], ["\\(", "\\)"]],
+      displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+      processEscapes: true
+    },
+    "HTML-CSS": {
+    scale: 100  // 调整公式字体大小，默认 100（百分比）
+    },
+    CommonHTML: {
+      scale: 100  // 如果使用 CommonHTML 输出，也需要设置
+    }
+  });
+</script>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -41,6 +60,8 @@
     </footer>
   </body>
 </html>
+
+<script src="{{ '/assets/js/main.js' | relative_url }}"></script>
 
 <link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}">
 <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">

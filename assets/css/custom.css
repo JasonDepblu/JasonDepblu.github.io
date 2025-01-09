@@ -476,3 +476,98 @@ article a:focus {
   color: #000;
   text-decoration: underline;
 }
+
+/* Toggle Header Style */
+/* Toggle Header Style */
+.toggle-header {
+  cursor: pointer; /* 鼠标悬停显示手势 */
+  padding: 10px 15px; /* 设置内边距 */
+  font-size: 1rem; /* 设置字体大小 */
+  /*font-weight: bold; !* 加粗文本 *!*/
+  background-color: #f8f8f8; /* 背景颜色 */
+  color: #241f1f; /* 文本颜色 */
+  border: 1px solid #ddd; /* 边框样式 */
+  border-radius: 5px; /* 圆角效果 */
+  margin-bottom: 5px; /* 每个 toggle 的间距 */
+  transition: background-color 0.3s ease, color 0.3s ease; /* 添加过渡效果 */
+  display: flex; /* 让内容居中对齐 */
+  align-items: center; /* 垂直居中 */
+}
+
+/* Hover and Active State for Toggle Header */
+.toggle-header:hover {
+  background-color: #ececec; /* 鼠标悬停时背景变浅 */
+  color: #000; /* 鼠标悬停时文本颜色变黑 */
+}
+
+.toggle-header.active {
+  background-color: #d9edf7; /* 激活状态背景颜色 (浅蓝色) */
+  color: #31708f; /* 激活状态文本颜色 */
+}
+
+/* Toggle Content Style */
+.toggle-content {
+  display: none; /* 默认隐藏内容 */
+  padding: 18px 18px; /* 内容内边距 */
+  border: 1px solid #ddd; /* 边框样式 */
+  border-radius: 5px; /* 圆角效果 */
+  margin-bottom: 10px; /* 内容与下一项的间距 */
+  background-color: #fff; /* 背景颜色 */
+  color: #333; /* 内容文字颜色 */
+  font-size: 0.95rem; /* 设置内容文字大小 */
+  line-height: 1.5; /* 增加行高 */
+  overflow: hidden; /* 隐藏溢出内容 */
+}
+
+/* Add Smooth Transition for Content Expansion */
+.toggle-content {
+  max-height: 0; /* 默认高度为 0 */
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+/* Expanded content */
+.toggle-header.active + .toggle-content {
+  display: block;
+  max-height: 500px; /* 根据需要设置展开内容的最大高度 */
+  padding: 20px 20px; /* 恢复内边距 */
+}
+
+/* Add icons for toggle */
+/*.toggle-header::before {*/
+/*  content: '+'; !* 默认显示加号 *!*/
+/*  font-size: 1.2rem; !* 图标大小 *!*/
+/*  color: #333; !* 图标颜色 *!*/
+/*  margin-right: 10px; !* 图标与文字的间距 *!*/
+/*  transition: transform 0.3s ease, color 0.3s ease; !* 添加过渡效果 *!*/
+/*}*/
+
+/*.toggle-header.active::before {*/
+/*  content: '-'; !* 激活状态显示减号 *!*/
+/*  color: #31708f; !* 激活状态图标颜色 *!*/
+/*}*/
+
+/* Small Screens (e.g., Mobile) */
+@media (max-width: 768px) {
+  .toggle-header {
+    font-size: 0.9rem; /* 减小字体大小 */
+    padding: 8px 12px; /* 减小内边距 */
+  }
+
+  .toggle-content {
+    font-size: 0.85rem; /* 减小内容字体大小 */
+    padding: 8px 12px; /* 减小内容内边距 */
+  }
+}
+
+/* Very Small Screens (e.g., Phones) */
+@media (max-width: 480px) {
+  .toggle-header {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+
+  .toggle-content {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+  }
+}

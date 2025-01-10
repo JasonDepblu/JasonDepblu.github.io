@@ -384,11 +384,12 @@ BLT作为一个基于byte级别的模型应该可以直接应用于中文,但需
 虽然理论上BLT能处理中文,但目前论文没有在中文数据集上的实验结果。要确定其在中文上的实际效果,还需要进行专门的实验验证。
 
 <p><strong>原文：Thus patching cannot assume access to future bytes in order to choose how to segment the byte sequence. 
-Formally, a patching scheme $$f_p$$ satisfies the property of incremental patching if it satisfies:</strong>
+Formally, a patching scheme $$f_p$$ satisfies the property of incremental patching if it satisfies:</strong></p>
 
 $$
 f_p(𝒙_{<i})=f_p(𝒙)_{<i}
 $$ 
+
 
 **问题5:** 这个公式如何理解？
 

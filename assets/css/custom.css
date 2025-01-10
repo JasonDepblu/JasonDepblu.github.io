@@ -508,7 +508,7 @@ article a:focus {
 /* Toggle Content Style */
 .toggle-content {
   display: none; /* 默认隐藏内容 */
-  padding: 18px 18px; /* 内容内边距 */
+  padding: 15px 18px; /* 内容内边距 */
   border: 1px solid #ddd; /* 边框样式 */
   border-radius: 5px; /* 圆角效果 */
   margin-bottom: 10px; /* 内容与下一项的间距 */
@@ -529,7 +529,7 @@ article a:focus {
 .toggle-header.active + .toggle-content {
   display: block;
   max-height: 500px; /* 根据需要设置展开内容的最大高度 */
-  padding: 20px 20px; /* 恢复内边距 */
+  padding: 15px 18px; /* 恢复内边距 */
 }
 
 /* Add icons for toggle */

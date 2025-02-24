@@ -354,24 +354,25 @@ article h2 {
 }
 
 article h3 {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: bold;
   margin-top: 1.5rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: #575656;
 }
 
 article h4 {
-  font-size: 1.2rem;
-  font-weight: bold;
+  font-size: 0.8rem;
+  font-weight: 500;
   margin-top: 1.5rem;
-  margin-bottom: 1rem;
-  color: #333;
+  margin-bottom: 1.5rem;
+  color: #555252;
+  display: flex; /* 让内容居中对齐 */
 }
 
 article h5 {
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 0.8rem;
+  /*font-weight: bold;*/
   margin-top: 1.5rem;
   margin-bottom: 1rem;
   color: #333;
@@ -387,7 +388,7 @@ article h5 {
 
 /* 段落样式：增强可读性 */
 article p {
-  margin-bottom: 1rem;
+  margin-bottom: 0.9rem;
   color: #444;
   font-size: 1rem;
 }
@@ -395,7 +396,7 @@ article p {
 /* 列表的样式优化：适度缩进并增加行距 */
 article ul,
 article ol {
-  margin-left: 1.5rem;
+  margin-left: 0.8rem;
   margin-bottom: 1rem;
 }
 
@@ -431,9 +432,9 @@ article pre code {
 article img {
   display: block;
   margin: 1.5rem auto;
-  max-height: 20rem;
-  width: auto;
-  max-width: 100%;
+  max-height: 30rem;
+  max-width: 30rem;
+
 }
 
 /* 表格样式优化 */
@@ -477,18 +478,31 @@ article a:focus {
   text-decoration: underline;
 }
 
+article.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+article.container ol {
+  list-style-type: decimal;
+  front-size: 1rem;
+}
+
 /* Toggle Header Style */
 /* Toggle Header Style */
 .toggle-header {
   cursor: pointer; /* 鼠标悬停显示手势 */
-  padding: 10px 15px; /* 设置内边距 */
-  font-size: 1rem; /* 设置字体大小 */
+  padding: 8px 12px; /* 设置内边距 */
+  font-size: 0.9rem; /* 设置字体大小 */
   /*font-weight: bold; !* 加粗文本 *!*/
   background-color: #f8f8f8; /* 背景颜色 */
   color: #241f1f; /* 文本颜色 */
   border: 1px solid #ddd; /* 边框样式 */
   border-radius: 5px; /* 圆角效果 */
-  margin-bottom: 5px; /* 每个 toggle 的间距 */
+  /*margin-bottom: 5px; !* 每个 toggle 的间距 *!*/
   transition: background-color 0.3s ease, color 0.3s ease; /* 添加过渡效果 */
   display: flex; /* 让内容居中对齐 */
   align-items: center; /* 垂直居中 */
@@ -508,14 +522,14 @@ article a:focus {
 /* Toggle Content Style */
 .toggle-content {
   display: none; /* 默认隐藏内容 */
-  padding: 15px 18px; /* 内容内边距 */
+  padding: 15px 20px; /* 内容内边距 */
   border: 1px solid #ddd; /* 边框样式 */
   border-radius: 5px; /* 圆角效果 */
   margin-bottom: 10px; /* 内容与下一项的间距 */
   background-color: #fff; /* 背景颜色 */
   color: #333; /* 内容文字颜色 */
-  font-size: 0.95rem; /* 设置内容文字大小 */
-  line-height: 1.5; /* 增加行高 */
+  font-size: 0.9rem; /* 设置内容文字大小 */
+  line-height: 1.8; /* 增加行高 */
   overflow: hidden; /* 隐藏溢出内容 */
 }
 
@@ -528,8 +542,9 @@ article a:focus {
 /* Expanded content */
 .toggle-header.active + .toggle-content {
   display: block;
-  max-height: 500px; /* 根据需要设置展开内容的最大高度 */
-  padding: 15px 18px; /* 恢复内边距 */
+  max-height: 2800px; /* 根据需要设置展开内容的最大高度 */
+  margin: 10px 18px;
+  padding: 15px 20px; /* 恢复内边距 */
 }
 
 /* Add icons for toggle */

@@ -99,7 +99,8 @@ body.header.post-layout { background-color: #fff; }
         justify-content: flex-end;
     }
     .nav ul li {
-    margin: 5px 0;
+      margin: 5px 0;
+      overflow-x: auto;  /* Enable horizontal scrolling for overflow items */
   }
 }
 

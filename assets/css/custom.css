@@ -98,6 +98,9 @@ body.header.post-layout { background-color: #fff; }
         flex-grow: 1;
         justify-content: flex-end;
     }
+    .nav ul li {
+    margin: 5px 0;
+  }
 }
 
 

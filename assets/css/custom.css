@@ -93,6 +93,12 @@ body.header.post-layout { background-color: #fff; }
         display: none; /* Hide logo */
     }
 
+    .custom-img {
+        max-width: 100%; /* 确保图片宽度适应屏幕 */
+        height: auto; /* 自动调整高度 */
+        margin: 1rem auto; /* 增加间距 */
+    }
+
     #nav {
         display: flex; /* Keep menu visible */
         flex-grow: 1;

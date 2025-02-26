@@ -106,7 +106,7 @@ body.header.post-layout { background-color: #fff; }
     }
     .nav ul {
       margin: 3px 0;
-      /*flex-wrap: wrap; !* 允许换行 *!*/
+      flex-wrap: wrap; /* 允许换行 */
       justify-content: space-around; /* 使导航项均匀分布 */
       width: 100%; /* 确保宽度适应屏幕 */
       /*overflow-x: auto;  !* Enable horizontal scrolling for overflow items *!*/

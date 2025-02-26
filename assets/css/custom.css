@@ -102,7 +102,7 @@ body.header.post-layout { background-color: #fff; }
       margin: 3px 0;
       overflow-x: auto;  /* Enable horizontal scrolling for overflow items */
       font-size: 1.2vw;
-      padding: 10px 10px;
+      padding: 5px 5px;
     }
 
   /*    #nav {*/

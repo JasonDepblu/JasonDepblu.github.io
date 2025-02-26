@@ -96,13 +96,27 @@ body.header.post-layout { background-color: #fff; }
     #nav {
         display: flex; /* Keep menu visible */
         flex-grow: 1;
-        justify-content: flex-end;
+        /*justify-content: flex-end;*/
     }
-    .nav ul li {
+    .nav ul {
       margin: 3px 0;
-      overflow-x: auto;  /* Enable horizontal scrolling for overflow items */
-      font-size: 1.2vw;
+      flex-wrap: wrap; /* 允许换行 */
+      justify-content: space-around; /* 使导航项均匀分布 */
+      width: 100%; /* 确保宽度适应屏幕 */
+      /*overflow-x: auto;  !* Enable horizontal scrolling for overflow items *!*/
+      font-size: 1vw;
       padding: 5px 5px;
+      gap: 3px;
+    }
+
+    .nav ul li {
+    flex: 1 1 25%; /* 设置每个导航项的宽度为屏幕宽度的 25% */
+    text-align: center; /* 使文本居中 */
+    padding: 10px 0; /* 增加点击区域 */
+    }
+
+    .nav ul li a {
+      font-size: 1.1rem; /* 调整字体大小 */
     }
 
   /*    #nav {*/

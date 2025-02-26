@@ -100,7 +100,7 @@ body.header.post-layout { background-color: #fff; }
     }
     .nav ul {
       margin: 3px 0;
-      flex-wrap: wrap; /* 允许换行 */
+      /*flex-wrap: wrap; !* 允许换行 *!*/
       justify-content: space-around; /* 使导航项均匀分布 */
       width: 100%; /* 确保宽度适应屏幕 */
       /*overflow-x: auto;  !* Enable horizontal scrolling for overflow items *!*/
@@ -119,36 +119,11 @@ body.header.post-layout { background-color: #fff; }
       font-size: 1.1rem; /* 调整字体大小 */
     }
 
-  /*    #nav {*/
-  /*  display: none;  !* 默认隐藏导航菜单 *!*/
-  /*}*/
-
-  /*.hamburger {*/
-  /*  display: block;  !* 显示汉堡按钮 *!*/
-  /*  cursor: pointer;*/
-  /*}*/
-
-  /*.nav ul {*/
-  /*  display: none;  !* 默认隐藏菜单项 *!*/
-  /*  flex-direction: column;*/
-  /*  width: 100%;*/
-  /*  padding: 10px 0;*/
-  /*  background-color: #fff;*/
-  /*}*/
-
-  /*.nav ul.show {*/
-  /*  display: flex;  !* 当菜单项显示时使用 *!*/
-  /*}*/
-
-  /*.nav ul li {*/
-  /*  padding: 10px 0;  !* 增加每个导航项的点击区域 *!*/
-  /*  border-bottom: 1px solid #ddd;*/
-  /*}*/
-
-  /*.nav ul li a {*/
-  /*  font-size: 1.2rem;*/
-  /*  padding: 10px 20px;*/
-  /*}*/
+    article img {
+        max-width: 100%; /* 确保图片宽度适应屏幕 */
+        height: auto; /* 自动调整高度 */
+        margin: 1rem auto; /* 增加间距 */
+    }
 }
 
 

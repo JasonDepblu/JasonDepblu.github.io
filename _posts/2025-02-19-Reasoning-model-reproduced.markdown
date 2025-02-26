@@ -2649,20 +2649,20 @@ Lightman等人（2024）研究了奖励信号在扩展中的作用，观察到�
     
 
 ## 7 开源的类o1项目
-### Reinforcement Learning Projects
+- Reinforcement Learning Projects
 
-| Project | Initialization | Reward Design | Train-time Search | Learning | Test-Time Search | Resource |
-| --- | --- | --- | --- | --- | --- | --- |
-| g1 | Prompt | - | - | - | Sampling | [Prompt](https://github.com/bklieger-groq/g1) |
-| Thinking Claude | Prompt | - | - | - | Sampling | [Prompt](https://github.com/richards199999/Thinking-Claude) |
-| Open o1 | SFT | - | - | - | Sampling | [Data](https://github.com/Open-Source-o1/Open-o1) |
-| o1-journey (part 1) | SFT | PRM | Beam-Search | Behavior Cloning | Sampling | - |
-| o1-journey (part 2) | SFT | - | - | - | Sampling | - |
-| Open-Reasoner | - | PRM | Sampling | PPO | MCTS | [Code](https://github.com/openreasoner/openr) |
-| Slow Thinking with LLMs 1 | SFT | ORM | Sampling | DPO | MCTS | - |
-| Slow Thinking with LLMs 2 | SFT | ORM | Sampling | DPO/SFT | smapling | - |
-| Marco-o1 | SFT | ORM | MCTS | Behavior Cloning | MCTS | [Model](https://huggingface.co/AIDC-AI/Marco-o1) |
-| o1-coder | SFT | PRM | MCTS | PPO/DPO | MCTS | - |
+    | Project | Initialization | Reward Design | Train-time Search | Learning | Test-Time Search | Resource |
+    | --- | --- | --- | --- | --- | --- | --- |
+    | g1 | Prompt | - | - | - | Sampling | [Prompt](https://github.com/bklieger-groq/g1) |
+    | Thinking Claude | Prompt | - | - | - | Sampling | [Prompt](https://github.com/richards199999/Thinking-Claude) |
+    | Open o1 | SFT | - | - | - | Sampling | [Data](https://github.com/Open-Source-o1/Open-o1) |
+    | o1-journey (part 1) | SFT | PRM | Beam-Search | Behavior Cloning | Sampling | - |
+    | o1-journey (part 2) | SFT | - | - | - | Sampling | - |
+    | Open-Reasoner | - | PRM | Sampling | PPO | MCTS | [Code](https://github.com/openreasoner/openr) |
+    | Slow Thinking with LLMs 1 | SFT | ORM | Sampling | DPO | MCTS | - |
+    | Slow Thinking with LLMs 2 | SFT | ORM | Sampling | DPO/SFT | smapling | - |
+    | Marco-o1 | SFT | ORM | MCTS | Behavior Cloning | MCTS | [Model](https://huggingface.co/AIDC-AI/Marco-o1) |
+    | o1-coder | SFT | PRM | MCTS | PPO/DPO | MCTS | - |
 
 ## **8 未来展望 (Future Directions)**
 

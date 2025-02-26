@@ -447,6 +447,7 @@ article table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 1.5rem;
+  overflow-x: auto;
 }
 
 article table th,
@@ -577,6 +578,11 @@ article.container ol {
     font-size: 0.85rem; /* 减小内容字体大小 */
     padding: 8px 12px; /* 减小内容内边距 */
   }
+
+  article table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;  /* 启用水平滚动 */
 }
 
 /* Very Small Screens (e.g., Phones) */

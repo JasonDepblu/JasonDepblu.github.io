@@ -628,3 +628,12 @@ article.container ol {
     padding: 6px 10px;
   }
 }
+
+
+#chat-container { width: 100%; max-width: 800px; margin: 0 auto; }
+#chat-log { padding: 1em; background: #f9f9f9; }
+.user-message { background: #e0f7fa; padding: 0.5em; margin: 0.5em 0; border-radius: 4px; }
+.ai-message { background: #fffde7; padding: 0.5em; margin: 0.5em 0; border-radius: 4px; }
+#input-area { margin-top: 1em; }
+#input-area textarea { width: 80%; height: 60px; }
+#input-area button { padding: 0.5em 1em; }

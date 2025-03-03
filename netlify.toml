@@ -1,0 +1,13 @@
+[build]
+  # 构建命令：这里调用 Jekyll 生成静态页面
+  command = "bundle exec jekyll build --baseurl=''"
+  # 构建输出的目录（生成后的静态文件所在目录）
+  publish = "_site"
+  # 如果您有 Netlify Functions 代码存放在 netlify/functions 下，则指定此目录
+  functions = "netlify/functions"
+
+[build.environment]
+  # 设置生产环境变量
+  JEKYLL_ENV = "production"
+  # 指定 Ruby 版本（根据您的 Gemfile 版本设置）
+  RUBY_VERSION = "3.2.2"

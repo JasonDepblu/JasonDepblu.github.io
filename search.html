@@ -1,69 +1,60 @@
 ---
 layout: post
-title: Search
+title: Comunication
 permalink: /search/
 date: 2024-12-3
 author: Jason
 ---
+<h1>Q & A</h1>
+<!-- search.html 的主体部分 -->
+<div id="chat-container">
+  <div id="chat-log"><!-- 动态插入对话 --></div>
+  <div id="input-area">
+    <textarea id="question" placeholder="请输入您的问题..."></textarea>
+    <button id="send-btn">提交</button>
+  </div>
+</div>
 
-<h1>Search</h1>
-
-<!-- 添加搜索表单 -->
-<form id="search-form" action="" method="get">
-  <input type="text" id="search-input" name="q" placeholder="Search" autocomplete="off" autofocus>
-</form>
-
+<!-- 引入 Markdown 渲染库 -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-  document.getElementById('search-form').addEventListener('submit', function(event) {
-    event.preventDefault(); // 阻止表单默认提交
-  });
-</script>
+  // 前端脚本：发送提问，接收回答并更新UI
+  const sendBtn = document.getElementById('send-btn');
+  const questionInput = document.getElementById('question');
+  const chatLog = document.getElementById('chat-log');
 
-<!-- 搜索结果容器 -->
-<div id="results-container"></div>
+  sendBtn.onclick = async () => {
+    const question = questionInput.value.trim();
+    if (!question) return;
+    // 在界面添加用户提问
+    appendMessage('user', question);
+    questionInput.value = '';  // 清空输入框
 
-<script>
-  async function fetchPosts() {
-    // 使用 Jekyll 的 site.baseurl 确保路径正确
-    const response = await fetch('{{ site.baseurl }}/search.json');
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
-  }
-
-  document.addEventListener('DOMContentLoaded', async () => {
-    const input = document.getElementById('search-input');
-    const resultsContainer = document.getElementById('results-container');
-
-    let posts = [];
+    // 调用后端 API 获取回答
     try {
-      posts = await fetchPosts();
-    } catch (error) {
-      console.error('Failed to fetch search.json:', error);
-      resultsContainer.innerHTML = '<p>Failed to load search data.</p>';
-      return;
+      const res = await fetch('https://jasondepblu.netlify.app/.netlify/functions/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      });
+      const data = await res.json();
+      const answerMarkdown = data.answer;
+      // 使用 marked 将Markdown转为HTML
+      const answerHtml = marked.parse(answerMarkdown);
+      appendMessage('ai', answerHtml);
+    } catch(err) {
+      console.error('API 调用失败:', err);
+      appendMessage('ai', '<p>抱歉，获取回答失败。</p>');
     }
+  };
 
-    // 处理用户输入并过滤结果
-    input.addEventListener('input', () => {
-      const query = input.value.toLowerCase();
-      const filteredPosts = posts.filter(post =>
-        post.title.toLowerCase().includes(query) ||
-        post.content.toLowerCase().includes(query)
-      );
-
-      // 显示搜索结果
-      if (filteredPosts.length > 0) {
-        resultsContainer.innerHTML = filteredPosts.map(post => `
-          <div class="search-result">
-            <a href="${post.url}">${post.title}</a> - ${new Date(post.date).toLocaleDateString()}
-            <p>${post.content.slice(0, 100)}...</p> <!-- 可选：显示文章内容的部分 -->
-          </div>
-        `).join('');
-      } else {
-        resultsContainer.innerHTML = '<p>No results found.</p>';
-      }
-    });
-  });
+  function appendMessage(sender, content) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = sender === 'user' ? 'user-message' : 'ai-message';
+    // 如果是AI消息，content可能是HTML字符串
+    msgDiv.innerHTML = sender === 'user' ?
+      `<p>${content}</p>` : content;
+    chatLog.appendChild(msgDiv);
+    chatLog.scrollTop = chatLog.scrollHeight; // 滚动到底部
+  }
 </script>

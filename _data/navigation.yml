@@ -2,7 +2,7 @@
   url: "/"
 - title: "Archive"
   url: "/archive/"
-- title: "Search"
+- title: "Q&A"
   url: "/search/"
 - title: "Tags"
   url: "/tags/"

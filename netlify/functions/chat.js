@@ -1,5 +1,6 @@
 // 引入 node-fetch 和 Pinecone 客户端
-const fetch = require('node-fetch');
+const fetch = (...args) =>
+  import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const { PineconeClient } = require('@pinecone-database/pinecone');
 
 // ------------------------------

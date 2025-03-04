@@ -10,7 +10,7 @@ let pineconeIndex;
 (async () => {
   try {
     // 动态导入 PineconeClient 模块
-    const { PineconeClient } = await import('@pinecone-database/pinecone');
+    const { default: PineconeClient } = await import('@pinecone-database/pinecone');
     const pinecone = new PineconeClient();
     await pinecone.init({
       apiKey: process.env.PINECONE_API_KEY,
@@ -63,10 +63,10 @@ async function embedText(text) {
 
   const result = await response.json();
   // 假设返回数据格式为：{ data: { embedding: [0.1, 0.2, 0.3, ...] } }
-  if (!result.data || !result.data.embedding) {
-    throw new Error("Invalid embedding response format.");
+  if (!result.data || !result.data[0] || !result.data[0].embedding) {
+  throw new Error("Invalid embedding response format.");
   }
-  return result.data.embedding;
+  return result.data[0].embedding;
 }
 
 // ------------------------------

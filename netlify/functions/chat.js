@@ -1,5 +1,6 @@
 // netlify/functions/chat.js
-const fetch = require('node-fetch');
+const fetch = (...args) =>
+  import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 // ------------------------------
 // 1. 初始化 Pinecone 客户端（使用动态 import）

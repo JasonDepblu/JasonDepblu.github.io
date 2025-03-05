@@ -23,28 +23,77 @@ author: Jason
   const questionInput = document.getElementById('question');
   const chatLog = document.getElementById('chat-log');
 
+  // 从本地存储中获取会话ID，用于维持对话连续性
+  let sessionId = localStorage.getItem('chatSessionId');
+
   sendBtn.onclick = async () => {
     const question = questionInput.value.trim();
     if (!question) return;
+
+    // 禁用发送按钮，防止重复点击
+    sendBtn.disabled = true;
+    sendBtn.textContent = '处理中...';
+
     // 在界面添加用户提问
     appendMessage('user', question);
     questionInput.value = '';  // 清空输入框
+
+    // 添加"思考中"的提示
+    const thinkingId = 'thinking-' + Date.now();
+    appendThinkingMessage(thinkingId);
 
     // 调用后端 API 获取回答
     try {
       const res = await fetch('https://jasondepblu.netlify.app/.netlify/functions/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question })
+        body: JSON.stringify({
+          question,
+          sessionId // 将会话ID发送给服务器
+        })
       });
+
+      // 移除"思考中"提示
+      removeThinkingMessage(thinkingId);
+
+      if (!res.ok) {
+        throw new Error(`服务器返回错误: ${res.status}`);
+      }
+
       const data = await res.json();
-      const answerMarkdown = data.answer;
-      // 使用 marked 将Markdown转为HTML
-      const answerHtml = marked.parse(answerMarkdown);
-      appendMessage('ai', answerHtml);
+
+      // 保存服务器返回的会话ID
+      if (data.sessionId) {
+        sessionId = data.sessionId;
+        localStorage.setItem('chatSessionId', sessionId);
+      }
+
+      // 显示回答
+      if (data.answer) {
+        const answerMarkdown = data.answer;
+        // 使用 marked 将Markdown转为HTML
+        const answerHtml = marked.parse(answerMarkdown);
+        appendMessage('ai', answerHtml);
+      } else if (data.error) {
+        appendMessage('ai', `<p class="error-message">错误: ${data.error}</p>`);
+      } else {
+        appendMessage('ai', '<p class="error-message">收到了没有答案的响应</p>');
+      }
+
+      // 可选：显示处理时间（调试用）
+      if (data.totalTime) {
+        console.log(`总处理时间: ${data.totalTime}ms`);
+      }
     } catch(err) {
+      // 移除"思考中"提示
+      removeThinkingMessage(thinkingId);
+
       console.error('API 调用失败:', err);
-      appendMessage('ai', '<p>抱歉，获取回答失败。</p>');
+      appendMessage('ai', `<p class="error-message">抱歉，获取回答失败: ${err.message}</p>`);
+    } finally {
+      // 恢复发送按钮
+      sendBtn.disabled = false;
+      sendBtn.textContent = '提交';
     }
   };
 
@@ -57,4 +106,75 @@ author: Jason
     chatLog.appendChild(msgDiv);
     chatLog.scrollTop = chatLog.scrollHeight; // 滚动到底部
   }
+
+  function appendThinkingMessage(id) {
+    const thinkingDiv = document.createElement('div');
+    thinkingDiv.id = id;
+    thinkingDiv.className = 'ai-message thinking';
+    thinkingDiv.innerHTML = '<p>思考中<span class="dots">...</span></p>';
+    chatLog.appendChild(thinkingDiv);
+    chatLog.scrollTop = chatLog.scrollHeight;
+
+    // 添加动画效果
+    animateThinking(id);
+  }
+
+  function removeThinkingMessage(id) {
+    const thinkingDiv = document.getElementById(id);
+    if (thinkingDiv) {
+      thinkingDiv.remove();
+    }
+  }
+
+  function animateThinking(id) {
+    const thinkingDiv = document.getElementById(id);
+    if (!thinkingDiv) return;
+
+    const dots = thinkingDiv.querySelector('.dots');
+    let count = 0;
+
+    const interval = setInterval(() => {
+      if (!document.getElementById(id)) {
+        clearInterval(interval);
+        return;
+      }
+
+      count = (count + 1) % 4;
+      dots.textContent = '.'.repeat(count);
+    }, 500);
+  }
+
+  // 允许按Enter键发送消息
+  questionInput.addEventListener('keydown', (e) => {
+    // Ctrl+Enter 或 在移动设备上直接 Enter 发送
+    if ((e.ctrlKey && e.key === 'Enter') ||
+        (window.innerWidth <= 768 && e.key === 'Enter' && !e.shiftKey)) {
+      e.preventDefault();
+      sendBtn.click();
+    }
+  });
+
+  // 添加清除会话按钮（可选）
+  function addClearSessionButton() {
+    const inputArea = document.getElementById('input-area');
+    const clearBtn = document.createElement('button');
+    clearBtn.id = 'clear-session';
+    clearBtn.textContent = '新对话';
+    clearBtn.title = '开始新的对话，清除对话历史';
+    clearBtn.style.marginLeft = '10px';
+
+    clearBtn.onclick = () => {
+      if (confirm('确定要开始新的对话吗？这将清除当前的对话历史。')) {
+        localStorage.removeItem('chatSessionId');
+        sessionId = null;
+        chatLog.innerHTML = '';
+        appendMessage('ai', '<p>已开始新的对话。</p>');
+      }
+    };
+
+    inputArea.appendChild(clearBtn);
+  }
+
+  // 页面加载完成后添加清除会话按钮
+  window.addEventListener('DOMContentLoaded', addClearSessionButton);
 </script>

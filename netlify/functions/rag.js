@@ -1,17 +1,122 @@
 // 使用 require 语法导入所有依赖（CommonJS 风格）
 const fetch = require('node-fetch');
 const { Pinecone } = require('@pinecone-database/pinecone');
-// 导入存储模块
-const storage = require('./storage');
+const fs = require('fs');
 
 // 配置参数
 const CONFIG = {
   FETCH_TIMEOUT: 8000,          // 8秒API调用超时
   PINECONE_TIMEOUT: 6000,       // 6秒Pinecone操作超时
-  RETRY_COUNT: 1,                // 重试次数
-  RETRY_DELAY: 500,              // 初始重试延迟(毫秒)
+  RETRY_COUNT: 1,               // 重试次数
+  RETRY_DELAY: 500,             // 初始重试延迟(毫秒)
   STORAGE_EXPIRY: 600,          // 存储数据10分钟后过期 (秒)
 };
+
+// ========== 内联存储实现 ==========
+// 在这里内联存储函数，而不是导入外部模块
+
+// 文件存储配置
+const FILE_STORAGE_PATH = '/tmp/request_data.json';
+
+/**
+ * 获取当前存储的所有数据
+ */
+async function getStorageData() {
+  try {
+    if (!fs.existsSync(FILE_STORAGE_PATH)) {
+      return {};
+    }
+
+    const data = await fs.promises.readFile(FILE_STORAGE_PATH, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("读取存储文件失败:", error);
+    return {};
+  }
+}
+
+/**
+ * 将数据写入文件
+ */
+async function writeStorageData(data) {
+  try {
+    await fs.promises.writeFile(
+      FILE_STORAGE_PATH,
+      JSON.stringify(data, null, 2),
+      'utf8'
+    );
+    return true;
+  } catch (error) {
+    console.error("写入存储文件失败:", error);
+    return false;
+  }
+}
+
+/**
+ * 保存数据到存储
+ */
+async function saveData(key, data, expirySeconds = 600) {
+  try {
+    // 添加过期时间
+    const expiry = Date.now() + (expirySeconds * 1000);
+    const storageData = {
+      ...data,
+      expiry
+    };
+
+    // 保存到文件
+    const allData = await getStorageData();
+    allData[key] = storageData;
+    await writeStorageData(allData);
+
+    return true;
+  } catch (error) {
+    console.error(`保存数据失败 (${key}):`, error);
+    return false;
+  }
+}
+
+/**
+ * 从存储获取数据
+ */
+async function getData(key) {
+  try {
+    const allData = await getStorageData();
+    const data = allData[key];
+
+    // 检查数据是否过期
+    if (data && data.expiry && data.expiry < Date.now()) {
+      // 删除并返回 null
+      delete allData[key];
+      await writeStorageData(allData);
+      return null;
+    }
+
+    return data || null;
+  } catch (error) {
+    console.error(`获取数据失败 (${key}):`, error);
+    return null;
+  }
+}
+
+/**
+ * 删除数据
+ */
+async function deleteData(key) {
+  try {
+    const allData = await getStorageData();
+    if (key in allData) {
+      delete allData[key];
+      await writeStorageData(allData);
+    }
+    return true;
+  } catch (error) {
+    console.error(`删除数据失败 (${key}):`, error);
+    return false;
+  }
+}
+
+// ========== 其他函数实现 ==========
 
 // 帮助函数：给Promise添加超时
 const withTimeout = (promise, timeoutMs, operationName) => {
@@ -217,8 +322,7 @@ async function triggerLlmFunction(data) {
   }
 }
 
-// 主处理函数 - 使用标准 CommonJS 导出
-// 注意：确保使用 module.exports 而不是 exports
+// 主处理函数
 const handler = async (event, context) => {
   const startTime = Date.now();
 
@@ -257,7 +361,7 @@ const handler = async (event, context) => {
     console.log(`处理新请求: ${requestId}, 问题: "${question.substring(0, 50)}${question.length > 50 ? '...' : ''}"`);
 
     // 初始化请求存储
-    await storage.saveData(requestId, {
+    await saveData(requestId, {
       status: "processing",
       question,
       sessionId,
@@ -293,7 +397,7 @@ const handler = async (event, context) => {
         console.log(`上下文: ${contextText.substring(0, 100)}${contextText.length > 100 ? "..." : ""}`);
 
         // 更新存储的请求状态
-        await storage.saveData(requestId, {
+        await saveData(requestId, {
           status: "rag_completed",
           question,
           sessionId,
@@ -312,7 +416,7 @@ const handler = async (event, context) => {
         });
       } catch (error) {
         console.error(`RAG处理过程中出错 (${requestId}):`, error);
-        await storage.saveData(requestId, {
+        await saveData(requestId, {
           status: "failed",
           error: `RAG处理失败: ${error.message}`,
           sessionId,

@@ -1,3 +1,4 @@
+// 使用 require 导入依赖项（CommonJS 风格）
 const fetch = require('node-fetch');
 // 导入存储模块
 const storage = require('./storage');
@@ -175,7 +176,7 @@ async function generateAnswer(messages) {
 }
 
 // 主处理函数
-exports.handler = async (event, context) => {
+const handler = async (event, context) => {
   const startTime = Date.now();
 
   const headers = {
@@ -289,7 +290,7 @@ exports.handler = async (event, context) => {
       }, CONFIG.STORAGE_EXPIRY);
 
       console.log(`请求 ${requestId} 处理失败: ${error.message}`);
-      
+
       return {
         statusCode: 500,
         headers,
@@ -298,11 +299,11 @@ exports.handler = async (event, context) => {
     }
   } catch (err) {
     console.error("处理请求出错:", err);
-    
+
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         error: "处理请求时出错",
         message: err.message,
         executionTime: Date.now() - startTime
@@ -310,3 +311,6 @@ exports.handler = async (event, context) => {
     };
   }
 };
+
+// 正确导出处理函数
+module.exports = { handler };

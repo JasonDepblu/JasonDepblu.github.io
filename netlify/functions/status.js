@@ -20,7 +20,7 @@ function getProgressInfo(status) {
 }
 
 // 主处理函数
-exports.handler = async (event, context) => {
+const handler = async (event, context) => {
   const startTime = Date.now();
 
   const headers = {
@@ -121,3 +121,6 @@ exports.handler = async (event, context) => {
     };
   }
 };
+
+// 正确导出处理函数
+module.exports = { handler };

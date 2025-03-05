@@ -1,16 +1,18 @@
 import fetch from 'node-fetch';
-import { PineconeClient } from '@pinecone-database/pinecone';
+import { Pinecone } from '@pinecone-database/pinecone';
 
 let pineconeIndex = null;
 
 async function initPinecone() {
   if (pineconeIndex) return pineconeIndex;
   try {
-    const pinecone = new PineconeClient();
-    await pinecone.init({
+    // New initialization pattern for Pinecone SDK
+    const pinecone = new Pinecone({
       apiKey: process.env.PINECONE_API_KEY,
       environment: process.env.PINECONE_ENVIRONMENT,
     });
+
+    // Get the index directly from the pinecone instance
     pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
     console.log("Pinecone index 初始化成功");
     return pineconeIndex;
@@ -23,6 +25,7 @@ async function initPinecone() {
 const index = {
   async query({ vector, topK, includeMetadata }) {
     const idx = await initPinecone();
+    // Make sure the query parameters match the current SDK expectations
     const queryResponse = await idx.query({
       vector,
       topK,

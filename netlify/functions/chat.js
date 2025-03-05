@@ -137,15 +137,15 @@ exports.handler = async (event, context) => {
     });
 
     // 如果没有匹配结果，提供一个友好的回复
-    if (matches.length === 0) {
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          answer: "抱歉，我没有找到与您问题相关的信息。请尝试用另一种方式提问，或者询问其他话题。"
-        }),
-      };
-    }
+    // if (matches.length === 0) {
+    //   return {
+    //     statusCode: 200,
+    //     headers,
+    //     body: JSON.stringify({
+    //       answer: "抱歉，我没有找到与您问题相关的信息。请尝试用另一种方式提问，或者询问其他话题。"
+    //     }),
+    //   };
+    // }
 
     // 4. 构造 DeepSeek API 的对话提示
     const promptMessages = [

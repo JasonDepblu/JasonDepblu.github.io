@@ -6,15 +6,19 @@ let pineconeIndex = null;
 async function initPinecone() {
   if (pineconeIndex) return pineconeIndex;
   try {
-    // Latest Pinecone SDK initialization pattern
+    console.log("正在初始化 Pinecone...");
+    console.log(`API Key: ${process.env.PINECONE_API_KEY ? "已设置" : "未设置"}`);
+    console.log(`环境: ${process.env.PINECONE_ENVIRONMENT}`);
+    console.log(`索引名称: ${process.env.PINECONE_INDEX}`);
+
+    // 1. 先尝试直接使用新的API格式（不构建controller URL）
     const pinecone = new Pinecone({
       apiKey: process.env.PINECONE_API_KEY,
-      // The environment parameter is no longer used
-      // Instead, we use the full controller host URL
-      controllerHostUrl: `https://controller.${process.env.PINECONE_ENVIRONMENT}.pinecone.io`,
     });
 
-    // Get the index using the new method from the pinecone instance
+    console.log("Pinecone 客户端创建成功");
+
+    // 获取索引实例
     pineconeIndex = pinecone.index(process.env.PINECONE_INDEX);
     console.log("Pinecone index 初始化成功");
     return pineconeIndex;
@@ -24,17 +28,32 @@ async function initPinecone() {
   }
 }
 
-const index = {
-  async query({ vector, topK, includeMetadata }) {
+// 简单的错误处理封装函数
+async function safeQuery(vector, topK = 5, includeMetadata = true) {
+  try {
     const idx = await initPinecone();
-    // Make sure the query parameters match the current SDK expectations
+
+    // 添加更多日志记录以便调试
+    console.log("准备查询 Pinecone...");
+    console.log(`向量维度: ${vector.length}`);
+
     const queryResponse = await idx.query({
       vector,
       topK,
       includeMetadata,
     });
+
     return queryResponse;
+  } catch (error) {
+    console.error("Pinecone 查询失败:", error);
+
+    // 返回一个空结果而不是抛出错误，这样即使 Pinecone 出问题，服务也能继续工作
+    return { matches: [] };
   }
+}
+
+const index = {
+  query: safeQuery
 };
 
 async function embedText(text) {

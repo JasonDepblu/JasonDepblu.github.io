@@ -26,8 +26,8 @@ author: Jason
   // 从本地存储中获取会话ID，用于维持对话连续性
   let sessionId = localStorage.getItem('chatSessionId');
   // 设置轮询相关参数
-  const POLL_INTERVAL = 2000; // 轮询间隔，毫秒
-  const MAX_POLL_ATTEMPTS = 30; // 最大轮询次数 (30 × 2秒 = 最多60秒)
+  const POLL_INTERVAL = 3000; // 轮询间隔，毫秒
+  const MAX_POLL_ATTEMPTS = 50; // 最大轮询次数 (30 × 2秒 = 最多60秒)
   const API_URL = 'https://jasondepblu.netlify.app/.netlify/functions';
 
   // 主要提问函数
@@ -106,8 +106,13 @@ author: Jason
 
   // 轮询检查结果
   async function pollForResult(requestId, thinkingId, attempts = 0) {
+    // 增加更高的超时容忍度
     if (attempts >= MAX_POLL_ATTEMPTS) {
-      throw new Error('回答生成超时，请稍后再试');
+      console.warn(`达到最大轮询次数 (${MAX_POLL_ATTEMPTS})，但仍在后台处理`);
+      return {
+        status: "timeout",
+        message: "回答生成时间较长，但仍在后台处理中。您可以稍后刷新页面查看结果。"
+      };
     }
 
     try {
@@ -147,6 +152,16 @@ author: Jason
         return pollForResult(requestId, thinkingId, attempts + 1);
       }
     } catch (error) {
+
+        // 对网络错误更宽容
+      console.warn(`轮询第 ${attempts+1} 次出错:`, error.message);
+
+      // 网络错误直接重试，不计入失败次数
+      if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+        return pollForResult(requestId, thinkingId, attempts); // 不增加 attempts
+      }
+
       if (error.message.includes('回答生成超时')) {
         throw error;
       }
@@ -164,6 +179,16 @@ author: Jason
 
   // 处理最终结果
   function handleResult(result) {
+
+    if (result.status === "timeout") {
+      // 超时但仍在处理
+      appendMessage('ai', `<p class="processing-message">
+        ${result.message}
+        <button onclick="checkAnswer('${result.requestId}')">检查是否已完成</button>
+      </p>`);
+      return;
+    }
+
     if (result.answer) {
       // 更新会话ID
       if (result.sessionId) {
@@ -180,6 +205,23 @@ author: Jason
       appendMessage('ai', '<p class="error-message">处理完成，但没有获得回答</p>');
     }
   }
+
+  // 添加检查功能
+async function checkAnswer(requestId) {
+  if (!requestId) return;
+
+  const thinkingId = 'checking-' + Date.now();
+  appendThinkingMessage(thinkingId);
+
+  try {
+    const result = await pollForResult(requestId, thinkingId, 0);
+    removeThinkingMessage(thinkingId);
+    handleResult(result);
+  } catch (error) {
+    removeThinkingMessage(thinkingId);
+    appendMessage('ai', `<p class="error-message">检查失败: ${error.message}</p>`);
+  }
+}
 
   // 更新"思考中"提示，使轮询过程更生动
   function updateThinkingMessage(id, attempts) {

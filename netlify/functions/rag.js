@@ -228,11 +228,24 @@ async function triggerLlmFunction(data) {
   try {
     console.log("异步触发LLM函数...");
     
-    fetch(`${process.env.URL}/.netlify/functions/llm`, {
+    // 使用更可靠的触发方式
+    await fetch(`${process.env.URL}/.netlify/functions/llm`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }).catch(err => console.error("异步调用LLM函数失败:", err));
+      body: JSON.stringify(data),
+      // 增加超时时间
+      timeout: 5000
+    }).catch(err => {
+      console.error("异步调用LLM函数失败:", err);
+      // 重要：失败后立即重试一次
+      setTimeout(() => {
+        fetch(`${process.env.URL}/.netlify/functions/llm`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        }).catch(e => console.error("LLM函数重试也失败:", e));
+      }, 1000);
+    });
     
     console.log("LLM函数触发成功");
     return true;

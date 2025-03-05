@@ -10,7 +10,7 @@ from pinecone import Pinecone, ServerlessSpec
 pc = Pinecone(api_key="")
 
 #%%
-index_name = "jasonsblog"
+
 
 pc.create_index(
     name=index_name,
@@ -18,7 +18,7 @@ pc.create_index(
     metric="cosine", # Replace with your model metric
     spec=ServerlessSpec(
         cloud="aws",
-        region="us-east-1"
+        region=""
     )
 )
 

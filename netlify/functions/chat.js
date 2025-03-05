@@ -1,6 +1,5 @@
 import fetch from 'node-fetch';
 import { Pinecone } from '@pinecone-database/pinecone';
-import { DynamoDB } from 'aws-sdk';
 
 // Configurable timeout values (in milliseconds)
 const CONFIG = {
@@ -10,20 +9,12 @@ const CONFIG = {
   RETRY_COUNT: 2,                // Number of retries for failed operations
   RETRY_DELAY: 1000,             // Initial delay between retries (1 second)
   MAX_HISTORY_LENGTH: 10,        // Maximum number of turns to keep in history
-  HISTORY_TTL: 60 * 60 * 24,     // TTL for chat history in seconds (24 hours)
+  MEMORY_EXPIRY: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
 };
 
-// Initialize DynamoDB client
-const dynamoDB = new DynamoDB.DocumentClient({
-  region: process.env.AWS_REGION || 'us-east-1'
-});
-
-// Table name for chat history
-const CHAT_HISTORY_TABLE = process.env.CHAT_HISTORY_TABLE || 'ChatHistory';
-
-// Global cache for Pinecone client
-let pineconeIndex = null;
-let pineconeClient = null;
+// In-memory chat history storage (will reset when function cold starts)
+// For Netlify Functions, this will be maintained during container reuse
+const chatHistoryStore = new Map();
 
 // Helper function to implement timeout for promises
 const withTimeout = (promise, timeoutMs, operationName) => {
@@ -55,6 +46,10 @@ const withRetry = async (operation, maxRetries, initialDelay, operationName) => 
   }
   throw lastError;
 };
+
+// Global cache for Pinecone client
+let pineconeIndex = null;
+let pineconeClient = null;
 
 // Initialize Pinecone with retry and timeout
 async function initPinecone() {
@@ -208,58 +203,46 @@ async function embedText(text) {
   }, CONFIG.RETRY_COUNT, CONFIG.RETRY_DELAY, "Text embedding");
 }
 
-// Functions to manage chat history
-async function getChatHistory(sessionId) {
-  try {
-    console.log(`Retrieving chat history for session: ${sessionId}`);
-    const params = {
-      TableName: CHAT_HISTORY_TABLE,
-      Key: { sessionId }
-    };
-
-    const result = await dynamoDB.get(params).promise();
-    if (result.Item) {
-      console.log(`Found history with ${result.Item.messages.length} messages`);
-      return result.Item.messages;
+// In-memory chat history management
+function getChatHistory(sessionId) {
+  // Clean up expired sessions first
+  const now = Date.now();
+  for (const [key, session] of chatHistoryStore.entries()) {
+    if (now > session.expiry) {
+      chatHistoryStore.delete(key);
+      console.log(`Deleted expired session: ${key}`);
     }
-
-    console.log("No existing chat history found, starting new conversation");
-    return [];
-  } catch (error) {
-    console.error("Error retrieving chat history:", error);
-    // If there's an error, return empty history to continue the conversation
-    return [];
   }
+
+  // Get or create session
+  const sessionData = chatHistoryStore.get(sessionId);
+  if (sessionData) {
+    console.log(`Found history with ${sessionData.messages.length} messages for session: ${sessionId}`);
+    // Update expiry time on access
+    sessionData.expiry = Date.now() + CONFIG.MEMORY_EXPIRY;
+    return sessionData.messages;
+  }
+
+  console.log(`No history found for session: ${sessionId}, starting new conversation`);
+  return [];
 }
 
-async function updateChatHistory(sessionId, messages) {
-  try {
-    console.log(`Updating chat history for session: ${sessionId} with ${messages.length} messages`);
+function updateChatHistory(sessionId, messages) {
+  // Keep only the most recent messages
+  const truncatedMessages = messages.slice(-CONFIG.MAX_HISTORY_LENGTH);
 
-    // Keep only the most recent messages according to CONFIG.MAX_HISTORY_LENGTH
-    const truncatedMessages = messages.slice(-CONFIG.MAX_HISTORY_LENGTH);
+  chatHistoryStore.set(sessionId, {
+    messages: truncatedMessages,
+    expiry: Date.now() + CONFIG.MEMORY_EXPIRY
+  });
 
-    const params = {
-      TableName: CHAT_HISTORY_TABLE,
-      Item: {
-        sessionId,
-        messages: truncatedMessages,
-        updatedAt: Math.floor(Date.now() / 1000),
-        ttl: Math.floor(Date.now() / 1000) + CONFIG.HISTORY_TTL
-      }
-    };
-
-    await dynamoDB.put(params).promise();
-    console.log("Chat history updated successfully");
-  } catch (error) {
-    console.error("Error updating chat history:", error);
-    // Continue even if history update fails
-  }
+  console.log(`Updated history for session: ${sessionId} with ${truncatedMessages.length} messages`);
+  console.log(`Total active sessions: ${chatHistoryStore.size}`);
 }
 
 exports.handler = async (event, context) => {
-  // Set context.callbackWaitsForEmptyEventLoop to false to prevent Lambda from waiting
-  if (context) {
+  // Set context.callbackWaitsForEmptyEventLoop to false if in AWS Lambda
+  if (context && typeof context.callbackWaitsForEmptyEventLoop !== 'undefined') {
     context.callbackWaitsForEmptyEventLoop = false;
   }
 
@@ -268,17 +251,32 @@ exports.handler = async (event, context) => {
     "Content-Type": "application/json",
   };
 
+  // Handle preflight requests for CORS
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 204,
+      headers: {
+        ...headers,
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      },
+      body: ""
+    };
+  }
+
   try {
-    const body = JSON.parse(event.body);
+    const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
     const question = body.question;
-    const sessionId = body.sessionId || 'default-session'; // Use provided sessionId or default
+
+    // Generate a random session ID if not provided
+    const sessionId = body.sessionId || `session_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
 
     if (!question) {
       return { statusCode: 400, headers, body: JSON.stringify({ error: "No question provided" }) };
     }
 
     // Retrieve chat history for this session
-    const chatHistory = await getChatHistory(sessionId);
+    const chatHistory = getChatHistory(sessionId);
 
     // 1. Vectorize question
     const queryVector = await embedText(question);
@@ -353,7 +351,7 @@ exports.handler = async (event, context) => {
     updatedHistory.push(assistantMessage); // Add assistant's response
 
     // Store updated history
-    await updateChatHistory(sessionId, updatedHistory);
+    updateChatHistory(sessionId, updatedHistory);
 
     return {
       statusCode: 200,
@@ -376,4 +374,4 @@ exports.handler = async (event, context) => {
       }),
     };
   }
-};
+}

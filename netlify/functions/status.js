@@ -1,36 +1,9 @@
-// 确保全局存储初始化
-global.requestStorage = global.requestStorage || {};
+const storage = require('./storage');
 
 // 配置参数
 const CONFIG = {
-  STORAGE_EXPIRY: 10 * 60 * 1000, // 存储数据10分钟后过期
+  STORAGE_EXPIRY: 600, // 存储数据10分钟后过期 (秒)
 };
-
-// 从存储中获取数据
-function getFromStorage(requestId) {
-  // 清理过期数据
-  cleanExpiredStorage();
-
-  // 获取数据
-  return global.requestStorage[requestId] || null;
-}
-
-// 清理过期数据
-function cleanExpiredStorage() {
-  const now = Date.now();
-  let cleanCount = 0;
-
-  for (const requestId in global.requestStorage) {
-    if (global.requestStorage[requestId].expiry < now) {
-      delete global.requestStorage[requestId];
-      cleanCount++;
-    }
-  }
-
-  if (cleanCount > 0) {
-    console.log(`已清理 ${cleanCount} 条过期数据`);
-  }
-}
 
 // 获取状态进度信息
 function getProgressInfo(status) {
@@ -89,7 +62,7 @@ exports.handler = async (event, context) => {
     console.log(`查询请求 ${requestId} 的状态`);
 
     // 从存储中获取数据
-    const result = getFromStorage(requestId);
+    const result = await storage.getData(requestId);
 
     if (!result) {
       console.log(`未找到请求 ${requestId} 的数据`);

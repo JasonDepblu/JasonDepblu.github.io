@@ -6,14 +6,16 @@ let pineconeIndex = null;
 async function initPinecone() {
   if (pineconeIndex) return pineconeIndex;
   try {
-    // New initialization pattern for Pinecone SDK
+    // Latest Pinecone SDK initialization pattern
     const pinecone = new Pinecone({
       apiKey: process.env.PINECONE_API_KEY,
-      environment: process.env.PINECONE_ENVIRONMENT,
+      // The environment parameter is no longer used
+      // Instead, we use the full controller host URL
+      controllerHostUrl: `https://controller.${process.env.PINECONE_ENVIRONMENT}.pinecone.io`,
     });
 
-    // Get the index directly from the pinecone instance
-    pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX);
+    // Get the index using the new method from the pinecone instance
+    pineconeIndex = pinecone.index(process.env.PINECONE_INDEX);
     console.log("Pinecone index 初始化成功");
     return pineconeIndex;
   } catch (err) {

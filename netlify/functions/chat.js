@@ -2,24 +2,24 @@ import fetch from 'node-fetch';
 import { Pinecone } from '@pinecone-database/pinecone';
 
 let pineconeIndex = null;
+let pineconeClient = null;
 
 async function initPinecone() {
   if (pineconeIndex) return pineconeIndex;
   try {
     console.log("正在初始化 Pinecone...");
     console.log(`API Key: ${process.env.PINECONE_API_KEY ? "已设置" : "未设置"}`);
-    console.log(`环境: ${process.env.PINECONE_ENVIRONMENT}`);
     console.log(`索引名称: ${process.env.PINECONE_INDEX}`);
 
-    // 使用简化的初始化方式
-    const pinecone = new Pinecone({
+    // 创建Pinecone客户端并保存到全局变量
+    pineconeClient = new Pinecone({
       apiKey: process.env.PINECONE_API_KEY,
     });
 
     console.log("Pinecone 客户端创建成功");
 
     // 获取索引实例
-    pineconeIndex = pinecone.index(process.env.PINECONE_INDEX);
+    pineconeIndex = pineconeClient.index(process.env.PINECONE_INDEX);
     console.log("Pinecone index 初始化成功");
     return pineconeIndex;
   } catch (err) {
@@ -67,41 +67,48 @@ const index = {
   query: safeQuery
 };
 
+// 使用Pinecone的嵌入API替代SiliconFlow
 async function embedText(text) {
-  const response = await fetch("https://api.siliconflow.cn/v1/embeddings", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${process.env.SILICONFLOW_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "Pro/BAAI/bge-m3",
-      input: text
-    })
-  });
+  try {
+    // 确保Pinecone客户端已初始化
+    if (!pineconeClient) {
+      await initPinecone();
+    }
 
-  if (!response.ok) {
-    throw new Error(`Embedding API request failed: ${response.statusText}`);
+    console.log("使用Pinecone的multilingual-e5-large模型生成嵌入向量...");
+
+    // 使用Pinecone的嵌入API
+    const embeddingResponse = await pineconeClient.inference.embed({
+      model: "multilingual-e5-large",
+      inputs: [text],
+      parameters: {
+        "input_type": "passage",
+        "truncate": "END"
+      }
+    });
+
+    console.log("Pinecone嵌入生成成功");
+
+    // 根据Pinecone的返回结果格式提取向量
+    let embedding = null;
+    if (embeddingResponse && Array.isArray(embeddingResponse) && embeddingResponse.length > 0) {
+      embedding = embeddingResponse[0];
+    } else if (embeddingResponse && embeddingResponse.embeddings && Array.isArray(embeddingResponse.embeddings) && embeddingResponse.embeddings.length > 0) {
+      embedding = embeddingResponse.embeddings[0];
+    } else if (embeddingResponse && embeddingResponse.data && Array.isArray(embeddingResponse.data) && embeddingResponse.data.length > 0) {
+      embedding = embeddingResponse.data[0];
+    }
+
+    if (!embedding || !Array.isArray(embedding)) {
+      console.error("嵌入返回数据格式:", JSON.stringify(embeddingResponse));
+      throw new Error("无法从Pinecone返回结果中提取向量数据");
+    }
+
+    return embedding;
+  } catch (error) {
+    console.error("生成嵌入向量失败:", error);
+    throw error;
   }
-
-  const result = await response.json();
-  console.log("Embedding API response:", result);
-
-  // 修复：确保我们正确提取向量
-  let embedding = null;
-  if (result.data && Array.isArray(result.data) && result.data.length > 0 && result.data[0].embedding) {
-    embedding = result.data[0].embedding;
-  } else if (result.data && result.data.embedding) {
-    embedding = result.data.embedding;
-  } else if (result.embedding) {
-    embedding = result.embedding;
-  }
-
-  if (!embedding || !Array.isArray(embedding)) {
-    throw new Error("无法从响应中提取向量数据");
-  }
-
-  return embedding;
 }
 
 exports.handler = async (event, context) => {
@@ -119,16 +126,16 @@ exports.handler = async (event, context) => {
 
     // 1. 向量化问题
     const queryVector = await embedText(question);
-    console.log("问题向量：", queryVector);
+    console.log("问题向量生成成功，维度:", queryVector.length);
 
     // 2. 查询 Pinecone 向量数据库
     const pineconeResult = await index.query({
-      vector: queryVector, // 确保这是数组
+      vector: queryVector,
       topK: 5,
       includeMetadata: true,
     });
     const matches = pineconeResult.matches || [];
-    console.log("Pinecone 查询结果：", matches);
+    console.log("Pinecone 查询结果数量:", matches.length);
 
     // 3. 整理检索到的上下文文本
     let contextText = "";
@@ -137,32 +144,25 @@ exports.handler = async (event, context) => {
     });
 
     // 如果没有匹配结果，提供一个友好的回复
-    // if (matches.length === 0) {
-    //   return {
-    //     statusCode: 200,
-    //     headers,
-    //     body: JSON.stringify({
-    //       answer: "抱歉，我没有找到与您问题相关的信息。请尝试用另一种方式提问，或者询问其他话题。"
-    //     }),
-    //   };
-    // }
+    if (matches.length === 0) {
+      contextText = "没有找到与问题直接相关的参考资料。";
+    }
 
     // 4. 构造 DeepSeek API 的对话提示
     const promptMessages = [
-      { role: 'system', content: '你是一个技术论坛的AI助手，请根据下面的文章参考回答用户问题。' },
+      { role: 'system', content: '你是一个技术论坛的AI助手，请根据下面的文章参考回答用户问题。如果没有相关参考资料，请告知用户你没有足够信息回答这个问题。' },
       { role: 'user', content: `问题：${question}\n\n文章参考：\n${contextText}` },
     ];
 
-    // 5. 调用 DeepSeek API 生成回答
-    // 修正模型名称，根据 DeepSeek 的实际可用模型
-    const deepseekRes = await fetch("https://api.deepseek.com", {
+    // 5. 调用硅基流动 API 使用 DeepSeek-R1 模型生成回答
+    const deepseekRes = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        "Authorization": `Bearer ${process.env.SILICONFLOW_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "deepseek-reasoner", // 修改为正确的模型名称
+        model: "Pro/deepseek-ai/DeepSeek-R1", // 使用硅基流动提供的 DeepSeek-R1 模型
         messages: promptMessages,
         temperature: 0.6,
       }),
@@ -170,12 +170,12 @@ exports.handler = async (event, context) => {
 
     if (!deepseekRes.ok) {
       const errText = await deepseekRes.text();
-      throw new Error(`DeepSeek API request failed: ${deepseekRes.statusText} - ${errText}`);
+      throw new Error(`硅基流动 DeepSeek-R1 API 请求失败: ${deepseekRes.statusText} - ${errText}`);
     }
 
     const deepseekData = await deepseekRes.json();
     const answer = deepseekData.choices?.[0]?.message?.content || "很抱歉，我无法生成回答。";
-    console.log("生成的回答：", answer);
+    console.log("使用硅基流动 DeepSeek-R1 模型生成回答成功");
 
     return {
       statusCode: 200,

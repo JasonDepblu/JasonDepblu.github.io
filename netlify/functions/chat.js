@@ -28,70 +28,26 @@ async function initPinecone() {
   }
 }
 
-// 修复后的查询函数
+// 修复后的查询函数 - 直接接受所有查询参数
 async function safeQuery(vector, topK = 5, includeMetadata = true) {
   try {
     const idx = await initPinecone();
 
-    // 增加更多日志，记录向量的实际结构
-    console.log("向量类型:", typeof vector);
-    console.log("是否为数组:", Array.isArray(vector));
-
-    // 检查前10个元素的类型和值
-    if (Array.isArray(vector) && vector.length > 0) {
-      console.log("前10个元素类型和值:");
-      for (let i = 0; i < Math.min(10, vector.length); i++) {
-        console.log(`[${i}]: ${typeof vector[i]} - ${vector[i]}`);
-      }
-    } else if (typeof vector === 'object') {
-      console.log("对象键:", Object.keys(vector).slice(0, 10));
-      console.log("对象值前10个元素:", Object.values(vector).slice(0, 10));
-    }
-
-    // 确保向量全都是数字类型的值
-    let normalizedVector = vector;
-
+    // 确保向量是数组
     if (!Array.isArray(vector)) {
       console.error("向量不是数组格式:", typeof vector);
-      if (typeof vector === 'object') {
-        console.log("尝试将对象转换为数组...");
-
-        // 检查是否有数字类型的数组属性
-        for (const key in vector) {
-          if (Array.isArray(vector[key]) && vector[key].length > 100) {
-            console.log(`找到疑似向量数据的属性: ${key}, 长度: ${vector[key].length}`);
-            normalizedVector = vector[key];
-            break;
-          }
-        }
-
-        // 如果没找到合适的数组属性，尝试使用Object.values
-        if (!Array.isArray(normalizedVector)) {
-          normalizedVector = Object.values(vector);
-        }
-      } else {
-        throw new Error("无效的向量格式");
-      }
-    }
-
-    // 确保数组中的所有元素都是数字
-    const allNumbers = normalizedVector.every(item => typeof item === 'number');
-    console.log("向量中的所有元素都是数字?", allNumbers);
-
-    if (!allNumbers) {
-      console.log("向量包含非数字元素，尝试转换...");
-      normalizedVector = normalizedVector.map(val => {
-        // 尝试将非数字值转换为0
-        return (typeof val === 'number') ? val : 0;
-      });
+      throw new Error("查询向量必须是数组");
     }
 
     console.log("准备查询 Pinecone...");
-    console.log(`向量维度: ${normalizedVector.length}`);
+    console.log(`向量维度: ${vector.length}`);
 
-    // 确保传递给 Pinecone 的是正确的查询格式
+    // 记录向量的一些元素以确认它们是数字
+    console.log("向量前5个元素示例:", vector.slice(0, 5));
+
+    // 执行查询
     const queryResponse = await idx.query({
-      vector: normalizedVector,
+      vector: vector,
       topK: topK,
       includeMetadata: includeMetadata,
     });
@@ -103,10 +59,6 @@ async function safeQuery(vector, topK = 5, includeMetadata = true) {
     return { matches: [] };
   }
 }
-
-const index = {
-  query: safeQuery
-};
 
 // 使用SiliconFlow的嵌入API
 async function embedText(text) {
@@ -132,7 +84,7 @@ async function embedText(text) {
     const result = await response.json();
     console.log("嵌入API响应成功");
 
-    // 打印返回结果的结构以便调试
+    // 记录响应结构
     console.log("嵌入响应结构:", JSON.stringify(Object.keys(result)));
     if (result.data) {
       console.log("data结构:", JSON.stringify(Object.keys(result.data)));
@@ -202,12 +154,8 @@ exports.handler = async (event, context) => {
     const queryVector = await embedText(question);
     console.log("问题向量生成成功，维度:", queryVector.length);
 
-    // 2. 查询 Pinecone 向量数据库
-    const pineconeResult = await index.query({
-      vector: queryVector,
-      topK: 5,
-      includeMetadata: true,
-    });
+    // 2. 查询 Pinecone 向量数据库 - 修复：直接传递向量，而不是一个包含向量的对象
+    const pineconeResult = await safeQuery(queryVector, 5, true);
     const matches = pineconeResult.matches || [];
     console.log("Pinecone 查询结果数量:", matches.length);
 

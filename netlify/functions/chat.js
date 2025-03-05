@@ -11,7 +11,7 @@ async function initPinecone() {
     console.log(`环境: ${process.env.PINECONE_ENVIRONMENT}`);
     console.log(`索引名称: ${process.env.PINECONE_INDEX}`);
 
-    // 1. 先尝试直接使用新的API格式（不构建controller URL）
+    // 使用简化的初始化方式
     const pinecone = new Pinecone({
       apiKey: process.env.PINECONE_API_KEY,
     });
@@ -28,26 +28,37 @@ async function initPinecone() {
   }
 }
 
-// 简单的错误处理封装函数
+// 修复后的查询函数
 async function safeQuery(vector, topK = 5, includeMetadata = true) {
   try {
     const idx = await initPinecone();
 
-    // 添加更多日志记录以便调试
+    // 确保向量是数组，而不是对象
+    if (!Array.isArray(vector)) {
+      console.error("向量不是数组格式:", typeof vector);
+      if (typeof vector === 'object') {
+        console.log("尝试将对象转换为数组...");
+        // 如果是类数组对象，尝试转换为数组
+        vector = Object.values(vector);
+      } else {
+        throw new Error("无效的向量格式");
+      }
+    }
+
     console.log("准备查询 Pinecone...");
     console.log(`向量维度: ${vector.length}`);
 
+    // 确保传递给 Pinecone 的是正确的查询格式
     const queryResponse = await idx.query({
-      vector,
-      topK,
-      includeMetadata,
+      vector: vector,
+      topK: topK,
+      includeMetadata: includeMetadata,
     });
 
     return queryResponse;
   } catch (error) {
     console.error("Pinecone 查询失败:", error);
-
-    // 返回一个空结果而不是抛出错误，这样即使 Pinecone 出问题，服务也能继续工作
+    // 返回空匹配结果
     return { matches: [] };
   }
 }
@@ -74,18 +85,23 @@ async function embedText(text) {
   }
 
   const result = await response.json();
-  console.log("Embedding API response:", result);  // 打印返回数据
+  console.log("Embedding API response:", result);
 
-  // 根据实际返回结构调整解析逻辑
-  if (result.data && result.data.embedding) {
-    return result.data.embedding;
+  // 修复：确保我们正确提取向量
+  let embedding = null;
+  if (result.data && Array.isArray(result.data) && result.data.length > 0 && result.data[0].embedding) {
+    embedding = result.data[0].embedding;
+  } else if (result.data && result.data.embedding) {
+    embedding = result.data.embedding;
   } else if (result.embedding) {
-    return result.embedding;
-  } else if (result.data && Array.isArray(result.data) && result.data.length > 0 && result.data[0].embedding) {
-    return result.data[0].embedding;
+    embedding = result.embedding;
   }
 
-  throw new Error("Invalid embedding response format.");
+  if (!embedding || !Array.isArray(embedding)) {
+    throw new Error("无法从响应中提取向量数据");
+  }
+
+  return embedding;
 }
 
 exports.handler = async (event, context) => {
@@ -107,42 +123,54 @@ exports.handler = async (event, context) => {
 
     // 2. 查询 Pinecone 向量数据库
     const pineconeResult = await index.query({
-      vector: queryVector,
+      vector: queryVector, // 确保这是数组
       topK: 5,
       includeMetadata: true,
     });
-    const matches = pineconeResult.matches;
+    const matches = pineconeResult.matches || [];
     console.log("Pinecone 查询结果：", matches);
 
     // 3. 整理检索到的上下文文本
     let contextText = "";
     matches.forEach((match, idx) => {
-      contextText += `【参考${idx + 1}】${match.metadata.title}: ${match.metadata.content}\n`;
+      contextText += `【参考${idx + 1}】${match.metadata?.title || "未知标题"}: ${match.metadata?.content || "无内容"}\n`;
     });
 
-    // 4. 构造 DeepSeek-R1 的对话提示
+    // 如果没有匹配结果，提供一个友好的回复
+    if (matches.length === 0) {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          answer: "抱歉，我没有找到与您问题相关的信息。请尝试用另一种方式提问，或者询问其他话题。"
+        }),
+      };
+    }
+
+    // 4. 构造 DeepSeek API 的对话提示
     const promptMessages = [
       { role: 'system', content: '你是一个技术论坛的AI助手，请根据下面的文章参考回答用户问题。' },
       { role: 'user', content: `问题：${question}\n\n文章参考：\n${contextText}` },
     ];
 
-    // 5. 调用 DeepSeek-R1 API 生成回答
-    const deepseekRes = await fetch("https://api.deepseek.com/v1/chat/completions", {
+    // 5. 调用 DeepSeek API 生成回答
+    // 修正模型名称，根据 DeepSeek 的实际可用模型
+    const deepseekRes = await fetch("https://api.deepseek.com", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${process.env.DEEPSEEK_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "DeepSeek-R1",
+        model: "deepseek-reasoner", // 修改为正确的模型名称
         messages: promptMessages,
-        temperature: 0.7,
+        temperature: 0.6,
       }),
     });
 
     if (!deepseekRes.ok) {
       const errText = await deepseekRes.text();
-      throw new Error(`DeepSeek-R1 API request failed: ${deepseekRes.statusText} - ${errText}`);
+      throw new Error(`DeepSeek API request failed: ${deepseekRes.statusText} - ${errText}`);
     }
 
     const deepseekData = await deepseekRes.json();

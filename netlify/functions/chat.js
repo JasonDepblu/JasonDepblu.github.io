@@ -1,13 +1,11 @@
-const fetch = (...args) =>
-  import('node-fetch').then(({ default: fetch }) => fetch(...args));
+import fetch from 'node-fetch';
+import { PineconeClient } from '@pinecone-database/pinecone';
 
 let pineconeIndex = null;
 
 async function initPinecone() {
   if (pineconeIndex) return pineconeIndex;
   try {
-    // 动态导入 PineconeClient 模块
-    const { default: PineconeClient } = await import('@pinecone-database/pinecone');
     const pinecone = new PineconeClient();
     await pinecone.init({
       apiKey: process.env.PINECONE_API_KEY,

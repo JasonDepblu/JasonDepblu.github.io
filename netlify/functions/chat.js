@@ -33,24 +33,65 @@ async function safeQuery(vector, topK = 5, includeMetadata = true) {
   try {
     const idx = await initPinecone();
 
-    // 确保向量是数组，而不是对象
+    // 增加更多日志，记录向量的实际结构
+    console.log("向量类型:", typeof vector);
+    console.log("是否为数组:", Array.isArray(vector));
+
+    // 检查前10个元素的类型和值
+    if (Array.isArray(vector) && vector.length > 0) {
+      console.log("前10个元素类型和值:");
+      for (let i = 0; i < Math.min(10, vector.length); i++) {
+        console.log(`[${i}]: ${typeof vector[i]} - ${vector[i]}`);
+      }
+    } else if (typeof vector === 'object') {
+      console.log("对象键:", Object.keys(vector).slice(0, 10));
+      console.log("对象值前10个元素:", Object.values(vector).slice(0, 10));
+    }
+
+    // 确保向量全都是数字类型的值
+    let normalizedVector = vector;
+
     if (!Array.isArray(vector)) {
       console.error("向量不是数组格式:", typeof vector);
       if (typeof vector === 'object') {
         console.log("尝试将对象转换为数组...");
-        // 如果是类数组对象，尝试转换为数组
-        vector = Object.values(vector);
+
+        // 检查是否有数字类型的数组属性
+        for (const key in vector) {
+          if (Array.isArray(vector[key]) && vector[key].length > 100) {
+            console.log(`找到疑似向量数据的属性: ${key}, 长度: ${vector[key].length}`);
+            normalizedVector = vector[key];
+            break;
+          }
+        }
+
+        // 如果没找到合适的数组属性，尝试使用Object.values
+        if (!Array.isArray(normalizedVector)) {
+          normalizedVector = Object.values(vector);
+        }
       } else {
         throw new Error("无效的向量格式");
       }
     }
 
+    // 确保数组中的所有元素都是数字
+    const allNumbers = normalizedVector.every(item => typeof item === 'number');
+    console.log("向量中的所有元素都是数字?", allNumbers);
+
+    if (!allNumbers) {
+      console.log("向量包含非数字元素，尝试转换...");
+      normalizedVector = normalizedVector.map(val => {
+        // 尝试将非数字值转换为0
+        return (typeof val === 'number') ? val : 0;
+      });
+    }
+
     console.log("准备查询 Pinecone...");
-    console.log(`向量维度: ${vector.length}`);
+    console.log(`向量维度: ${normalizedVector.length}`);
 
     // 确保传递给 Pinecone 的是正确的查询格式
     const queryResponse = await idx.query({
-      vector: vector,
+      vector: normalizedVector,
       topK: topK,
       includeMetadata: includeMetadata,
     });
@@ -67,7 +108,7 @@ const index = {
   query: safeQuery
 };
 
-// 由于Pinecone的嵌入API可能有问题，回退到使用SiliconFlow的嵌入API
+// 使用SiliconFlow的嵌入API
 async function embedText(text) {
   try {
     console.log("使用SiliconFlow API生成嵌入向量...");
@@ -91,19 +132,50 @@ async function embedText(text) {
     const result = await response.json();
     console.log("嵌入API响应成功");
 
+    // 打印返回结果的结构以便调试
+    console.log("嵌入响应结构:", JSON.stringify(Object.keys(result)));
+    if (result.data) {
+      console.log("data结构:", JSON.stringify(Object.keys(result.data)));
+      if (Array.isArray(result.data)) {
+        console.log("data数组长度:", result.data.length);
+        if (result.data.length > 0) {
+          console.log("data[0]结构:", JSON.stringify(Object.keys(result.data[0])));
+        }
+      }
+    }
+
     // 提取向量数据
     let embedding = null;
     if (result.data && Array.isArray(result.data) && result.data.length > 0 && result.data[0].embedding) {
+      console.log("从result.data[0].embedding中提取向量");
       embedding = result.data[0].embedding;
     } else if (result.data && result.data.embedding) {
+      console.log("从result.data.embedding中提取向量");
       embedding = result.data.embedding;
     } else if (result.embedding) {
+      console.log("从result.embedding中提取向量");
       embedding = result.embedding;
     }
 
-    if (!embedding || !Array.isArray(embedding)) {
+    if (!embedding) {
+      console.error("无法找到嵌入向量，返回完整响应:", JSON.stringify(result).substring(0, 200) + "...");
       throw new Error("无法从响应中提取向量数据");
     }
+
+    // 确保向量是数组形式
+    if (!Array.isArray(embedding)) {
+      console.log("嵌入向量不是数组，尝试转换...");
+      if (typeof embedding === 'object') {
+        embedding = Object.values(embedding);
+      } else {
+        throw new Error("无法将嵌入向量转换为数组");
+      }
+    }
+
+    // 检查向量中的元素类型
+    const sampleCheck = embedding.slice(0, 5);
+    console.log("向量前5个元素:", sampleCheck);
+    console.log("向量前5个元素类型:", sampleCheck.map(item => typeof item));
 
     console.log(`成功生成向量，维度: ${embedding.length}`);
     return embedding;

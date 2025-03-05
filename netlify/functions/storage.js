@@ -1,291 +1,351 @@
-/**
- * storage.js - 持久化存储模块
- *
- * 部署时，将这个文件放在 netlify/functions 目录下作为共享模块。
- * 所有函数都可以导入这个模块来访问共享存储。
- */
-
-// 引入 node-fetch 用于发送请求
+// 使用 require 语法导入所有依赖（CommonJS 风格）
 const fetch = require('node-fetch');
+const { Pinecone } = require('@pinecone-database/pinecone');
+// 导入存储模块
+const storage = require('./storage');
 
-// 存储选项 - 您可以根据需要启用其中一个
-const STORAGE_TYPE = 'FILE'; // 可选值: 'FILE', 'API'
+// 配置参数
+const CONFIG = {
+  FETCH_TIMEOUT: 8000,          // 8秒API调用超时
+  PINECONE_TIMEOUT: 6000,       // 6秒Pinecone操作超时
+  RETRY_COUNT: 1,                // 重试次数
+  RETRY_DELAY: 500,              // 初始重试延迟(毫秒)
+  STORAGE_EXPIRY: 600,          // 存储数据10分钟后过期 (秒)
+};
 
-// 文件存储配置 - 使用 Netlify 的 /tmp 目录存储数据
-const FILE_STORAGE_PATH = '/tmp/request_data.json';
-const fs = require('fs');
+// 帮助函数：给Promise添加超时
+const withTimeout = (promise, timeoutMs, operationName) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${operationName} operation timed out after ${timeoutMs}ms`)), timeoutMs)
+    )
+  ]);
+};
 
-// API 存储配置 - 如果使用外部 API 存储（如 KV.REST）
-const API_STORAGE_URL = process.env.STORAGE_API_URL || 'https://example.com/api/storage';
-const API_STORAGE_KEY = process.env.STORAGE_API_KEY || 'your-api-key';
+// 帮助函数：添加重试机制
+const withRetry = async (operation, maxRetries, initialDelay, operationName) => {
+  let lastError;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      console.warn(`${operationName} attempt ${attempt + 1}/${maxRetries + 1} failed:`, error.message);
+      lastError = error;
 
-/**
- * 保存数据到存储
- * @param {string} key - 存储键
- * @param {object} data - 要存储的数据
- * @param {number} expirySeconds - 过期时间（秒）
- * @returns {Promise<boolean>} - 是否保存成功
- */
-async function saveData(key, data, expirySeconds = 600) {
-  try {
-    // 添加过期时间
-    const expiry = Date.now() + (expirySeconds * 1000);
-    const storageData = {
-      ...data,
-      expiry
-    };
-
-    if (STORAGE_TYPE === 'FILE') {
-      return await saveToFile(key, storageData);
-    } else if (STORAGE_TYPE === 'API') {
-      return await saveToAPI(key, storageData);
+      if (attempt < maxRetries) {
+        // 指数退避策略
+        const delay = initialDelay * Math.pow(2, attempt);
+        console.log(`Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
     }
-
-    return false;
-  } catch (error) {
-    console.error(`保存数据失败 (${key}):`, error);
-    return false;
   }
+  throw lastError;
+};
+
+// Pinecone客户端缓存
+let pineconeIndex = null;
+let pineconeClient = null;
+
+// 初始化Pinecone
+async function initPinecone() {
+  if (pineconeIndex) return pineconeIndex;
+
+  return withRetry(async () => {
+    try {
+      console.log("正在初始化 Pinecone...");
+      console.log(`API Key: ${process.env.PINECONE_API_KEY ? "已设置" : "未设置"}`);
+      console.log(`索引名称: ${process.env.PINECONE_INDEX}`);
+
+      // 创建Pinecone客户端
+      pineconeClient = new Pinecone({
+        apiKey: process.env.PINECONE_API_KEY,
+      });
+
+      console.log("Pinecone 客户端创建成功");
+
+      // 获取索引实例
+      pineconeIndex = await withTimeout(
+        pineconeClient.index(process.env.PINECONE_INDEX),
+        CONFIG.PINECONE_TIMEOUT,
+        "Pinecone初始化"
+      );
+
+      console.log("Pinecone 索引初始化成功");
+      return pineconeIndex;
+    } catch (err) {
+      console.error("初始化 Pinecone 出错:", err);
+      throw err;
+    }
+  }, CONFIG.RETRY_COUNT, CONFIG.RETRY_DELAY, "Pinecone初始化");
 }
 
-/**
- * 从存储获取数据
- * @param {string} key - 存储键
- * @returns {Promise<object|null>} - 存储的数据或 null
- */
-async function getData(key) {
-  try {
-    let data;
+// 安全查询函数
+async function safeQuery(vector, topK = 5, includeMetadata = true) {
+  return withRetry(async () => {
+    try {
+      const idx = await initPinecone();
 
-    if (STORAGE_TYPE === 'FILE') {
-      data = await getFromFile(key);
-    } else if (STORAGE_TYPE === 'API') {
-      data = await getFromAPI(key);
+      // 确保向量是数组
+      if (!Array.isArray(vector)) {
+        console.error("向量不是数组格式:", typeof vector);
+        throw new Error("查询向量必须是数组");
+      }
+
+      console.log("准备查询 Pinecone...");
+      console.log(`向量维度: ${vector.length}`);
+      console.log("向量前5个元素示例:", vector.slice(0, 5));
+
+      // 执行查询
+      const queryResponse = await withTimeout(
+        idx.query({
+          vector: vector,
+          topK: topK,
+          includeMetadata: includeMetadata,
+        }),
+        CONFIG.PINECONE_TIMEOUT,
+        "Pinecone查询"
+      );
+
+      return queryResponse;
+    } catch (error) {
+      console.error("Pinecone 查询失败:", error);
+      // 失败时返回空匹配结果
+      return { matches: [] };
     }
-
-    // 检查数据是否过期
-    if (data && data.expiry && data.expiry < Date.now()) {
-      // 数据已过期，删除并返回 null
-      await deleteData(key);
-      return null;
-    }
-
-    return data;
-  } catch (error) {
-    console.error(`获取数据失败 (${key}):`, error);
-    return null;
-  }
+  }, CONFIG.RETRY_COUNT, CONFIG.RETRY_DELAY, "Pinecone查询");
 }
 
-/**
- * 从存储中删除数据
- * @param {string} key - 存储键
- * @returns {Promise<boolean>} - 是否删除成功
- */
-async function deleteData(key) {
-  try {
-    if (STORAGE_TYPE === 'FILE') {
-      return await deleteFromFile(key);
-    } else if (STORAGE_TYPE === 'API') {
-      return await deleteFromAPI(key);
-    }
+// 文本嵌入函数
+async function embedText(text) {
+  return withRetry(async () => {
+    try {
+      console.log("使用SiliconFlow API生成嵌入向量...");
 
-    return false;
-  } catch (error) {
-    console.error(`删除数据失败 (${key}):`, error);
-    return false;
-  }
+      const response = await withTimeout(
+        fetch("https://api.siliconflow.cn/v1/embeddings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.SILICONFLOW_API_KEY}`
+          },
+          body: JSON.stringify({
+            model: "Pro/BAAI/bge-m3",
+            input: text
+          })
+        }),
+        CONFIG.FETCH_TIMEOUT,
+        "嵌入向量生成"
+      );
+
+      if (!response.ok) {
+        throw new Error(`嵌入API请求失败: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log("嵌入API响应成功");
+
+      // 提取向量数据
+      let embedding = null;
+      if (result.data && Array.isArray(result.data) && result.data.length > 0 && result.data[0].embedding) {
+        console.log("从result.data[0].embedding中提取向量");
+        embedding = result.data[0].embedding;
+      } else if (result.data && result.data.embedding) {
+        console.log("从result.data.embedding中提取向量");
+        embedding = result.data.embedding;
+      } else if (result.embedding) {
+        console.log("从result.embedding中提取向量");
+        embedding = result.embedding;
+      }
+
+      if (!embedding) {
+        console.error("无法找到嵌入向量");
+        throw new Error("无法从响应中提取向量数据");
+      }
+
+      // 确保向量是数组
+      if (!Array.isArray(embedding)) {
+        console.log("嵌入向量不是数组，尝试转换...");
+        if (typeof embedding === 'object') {
+          embedding = Object.values(embedding);
+        } else {
+          throw new Error("无法将嵌入向量转换为数组");
+        }
+      }
+
+      console.log(`成功生成向量，维度: ${embedding.length}`);
+      return embedding;
+    } catch (error) {
+      console.error("生成嵌入向量失败:", error);
+      throw error;
+    }
+  }, CONFIG.RETRY_COUNT, CONFIG.RETRY_DELAY, "文本嵌入");
 }
 
-// ---- 文件存储实现 ----
-
-/**
- * 获取当前存储的所有数据
- * @returns {Promise<object>} - 所有存储的数据
- */
-async function getStorageData() {
+// 异步触发LLM函数
+async function triggerLlmFunction(data) {
   try {
-    if (!fs.existsSync(FILE_STORAGE_PATH)) {
-      return {};
+    console.log("异步触发LLM函数...");
+
+    // 使用更可靠的触发方式
+    try {
+      await fetch(`${process.env.URL}/.netlify/functions/llm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        // 增加超时时间
+        timeout: 5000
+      });
+      console.log("LLM函数触发成功");
+    } catch (err) {
+      console.error("异步调用LLM函数失败:", err);
+      // 重要：失败后立即重试一次
+      setTimeout(() => {
+        fetch(`${process.env.URL}/.netlify/functions/llm`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        }).catch(e => console.error("LLM函数重试也失败:", e));
+      }, 1000);
     }
 
-    const data = await fs.promises.readFile(FILE_STORAGE_PATH, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    console.error("读取存储文件失败:", error);
-    return {};
-  }
-}
-
-/**
- * 将数据写入文件
- * @param {object} data - 要写入的数据
- * @returns {Promise<boolean>} - 是否写入成功
- */
-async function writeStorageData(data) {
-  try {
-    await fs.promises.writeFile(
-      FILE_STORAGE_PATH,
-      JSON.stringify(data, null, 2),
-      'utf8'
-    );
     return true;
   } catch (error) {
-    console.error("写入存储文件失败:", error);
+    console.error("触发LLM函数出错:", error);
     return false;
   }
 }
 
-/**
- * 保存数据到文件
- * @param {string} key - 存储键
- * @param {object} data - 要存储的数据
- * @returns {Promise<boolean>} - 是否保存成功
- */
-async function saveToFile(key, data) {
-  const storageData = await getStorageData();
-  storageData[key] = data;
-  return await writeStorageData(storageData);
-}
+// 主处理函数 - 使用标准 CommonJS 导出
+// 注意：确保使用 module.exports 而不是 exports
+const handler = async (event, context) => {
+  const startTime = Date.now();
 
-/**
- * 从文件获取数据
- * @param {string} key - 存储键
- * @returns {Promise<object|null>} - 存储的数据或 null
- */
-async function getFromFile(key) {
-  const storageData = await getStorageData();
-  return storageData[key] || null;
-}
+  const headers = {
+    "Access-Control-Allow-Origin": "*",
+    "Content-Type": "application/json",
+  };
 
-/**
- * 从文件删除数据
- * @param {string} key - 存储键
- * @returns {Promise<boolean>} - 是否删除成功
- */
-async function deleteFromFile(key) {
-  const storageData = await getStorageData();
-  if (key in storageData) {
-    delete storageData[key];
-    return await writeStorageData(storageData);
-  }
-  return true;
-}
-
-/**
- * 清理过期的文件存储数据
- * @returns {Promise<number>} - 清理的数据数量
- */
-async function cleanupFileStorage() {
-  try {
-    const storageData = await getStorageData();
-    const now = Date.now();
-    let cleanCount = 0;
-
-    for (const key in storageData) {
-      if (storageData[key].expiry && storageData[key].expiry < now) {
-        delete storageData[key];
-        cleanCount++;
-      }
-    }
-
-    if (cleanCount > 0) {
-      await writeStorageData(storageData);
-      console.log(`已清理 ${cleanCount} 条过期数据`);
-    }
-
-    return cleanCount;
-  } catch (error) {
-    console.error("清理过期数据失败:", error);
-    return 0;
-  }
-}
-
-// ---- API 存储实现 ----
-
-/**
- * 保存数据到 API
- * @param {string} key - 存储键
- * @param {object} data - 要存储的数据
- * @returns {Promise<boolean>} - 是否保存成功
- */
-async function saveToAPI(key, data) {
-  try {
-    const response = await fetch(`${API_STORAGE_URL}/${key}`, {
-      method: 'PUT',
+  // 处理CORS预检请求
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 204,
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_STORAGE_KEY}`
+        ...headers,
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
       },
-      body: JSON.stringify(data)
-    });
-
-    return response.ok;
-  } catch (error) {
-    console.error(`API存储保存失败 (${key}):`, error);
-    return false;
+      body: ""
+    };
   }
-}
 
-/**
- * 从 API 获取数据
- * @param {string} key - 存储键
- * @returns {Promise<object|null>} - 存储的数据或 null
- */
-async function getFromAPI(key) {
   try {
-    const response = await fetch(`${API_STORAGE_URL}/${key}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${API_STORAGE_KEY}`
-      }
-    });
+    // 解析请求
+    const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+    const question = body.question;
 
-    if (!response.ok) {
-      return null;
+    // 生成或使用会话ID
+    const sessionId = body.sessionId || `session_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+
+    if (!question) {
+      return { statusCode: 400, headers, body: JSON.stringify({ error: "未提供问题" }) };
     }
 
-    return await response.json();
-  } catch (error) {
-    console.error(`API存储获取失败 (${key}):`, error);
-    return null;
-  }
-}
+    // 生成请求ID
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    console.log(`处理新请求: ${requestId}, 问题: "${question.substring(0, 50)}${question.length > 50 ? '...' : ''}"`);
 
-/**
- * 从 API 删除数据
- * @param {string} key - 存储键
- * @returns {Promise<boolean>} - 是否删除成功
- */
-async function deleteFromAPI(key) {
-  try {
-    const response = await fetch(`${API_STORAGE_URL}/${key}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${API_STORAGE_KEY}`
+    // 初始化请求存储
+    await storage.saveData(requestId, {
+      status: "processing",
+      question,
+      sessionId,
+      startTime
+    }, CONFIG.STORAGE_EXPIRY);
+
+    console.log(`初始化请求存储成功: ${requestId}`);
+
+    // 异步处理RAG查询
+    // 注意：这里使用void操作符，不等待处理完成
+    void (async () => {
+      try {
+        console.log(`开始异步处理请求: ${requestId}`);
+
+        // 1. 向量化问题
+        const queryVector = await embedText(question);
+        console.log(`问题向量生成成功，维度: ${queryVector.length}`);
+
+        // 2. 查询Pinecone向量数据库
+        const pineconeResult = await safeQuery(queryVector, 5, true);
+        const matches = pineconeResult.matches || [];
+        console.log(`Pinecone查询结果数量: ${matches.length}`);
+
+        // 3. 整理检索到的上下文文本
+        let contextText = "";
+        matches.forEach((match, idx) => {
+          contextText += `【参考${idx + 1}】${match.metadata?.title || "未知标题"}: ${match.metadata?.content || "无内容"}\n`;
+        });
+
+        if (matches.length === 0) {
+          contextText = "没有找到与问题直接相关的参考资料。";
+        }
+        console.log(`上下文: ${contextText.substring(0, 100)}${contextText.length > 100 ? "..." : ""}`);
+
+        // 更新存储的请求状态
+        await storage.saveData(requestId, {
+          status: "rag_completed",
+          question,
+          sessionId,
+          contextText,
+          startTime
+        }, CONFIG.STORAGE_EXPIRY);
+
+        console.log(`RAG处理完成，更新存储状态: ${requestId}`);
+
+        // 4. 触发LLM处理
+        await triggerLlmFunction({
+          requestId,
+          question,
+          sessionId,
+          contextText
+        });
+      } catch (error) {
+        console.error(`RAG处理过程中出错 (${requestId}):`, error);
+        await storage.saveData(requestId, {
+          status: "failed",
+          error: `RAG处理失败: ${error.message}`,
+          sessionId,
+          startTime
+        }, CONFIG.STORAGE_EXPIRY);
       }
-    });
+    })();
 
-    return response.ok;
-  } catch (error) {
-    console.error(`API存储删除失败 (${key}):`, error);
-    return false;
+    // 立即返回请求ID，不等待处理完成
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        requestId,
+        sessionId,
+        status: "processing",
+        message: "请求已接收，正在处理"
+      })
+    };
+  } catch (err) {
+    console.error("处理请求出错:", err);
+
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        error: "处理请求时出错",
+        message: err.message,
+        executionTime: Date.now() - startTime
+      })
+    };
   }
-}
-
-// 定期清理过期数据
-async function cleanupStorage() {
-  if (STORAGE_TYPE === 'FILE') {
-    return await cleanupFileStorage();
-  }
-  // API 存储通常由服务提供商自动清理
-  return 0;
-}
-
-// 导出函数
-module.exports = {
-  saveData,
-  getData,
-  deleteData,
-  cleanupStorage
 };
+
+// 正确导出处理函数
+module.exports = { handler };

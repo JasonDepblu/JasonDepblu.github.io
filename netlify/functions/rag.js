@@ -1,3 +1,4 @@
+// 使用 require 语法导入所有依赖（CommonJS 风格）
 const fetch = require('node-fetch');
 const { Pinecone } = require('@pinecone-database/pinecone');
 // 导入存储模块
@@ -216,8 +217,9 @@ async function triggerLlmFunction(data) {
   }
 }
 
-// 主处理函数
-exports.handler = async (event, context) => {
+// 主处理函数 - 使用标准 CommonJS 导出
+// 注意：确保使用 module.exports 而不是 exports
+const handler = async (event, context) => {
   const startTime = Date.now();
 
   const headers = {
@@ -318,7 +320,7 @@ exports.handler = async (event, context) => {
         }, CONFIG.STORAGE_EXPIRY);
       }
     })();
-    
+
     // 立即返回请求ID，不等待处理完成
     return {
       statusCode: 200,
@@ -332,11 +334,11 @@ exports.handler = async (event, context) => {
     };
   } catch (err) {
     console.error("处理请求出错:", err);
-    
+
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         error: "处理请求时出错",
         message: err.message,
         executionTime: Date.now() - startTime
@@ -344,3 +346,6 @@ exports.handler = async (event, context) => {
     };
   }
 };
+
+// 正确导出处理函数
+module.exports = { handler };

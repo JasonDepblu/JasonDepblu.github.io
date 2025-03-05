@@ -139,7 +139,7 @@ async function generateAnswer(messages) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "Pro/deepseek-ai/DeepSeek-R1",
+          model: "deepseek-ai/DeepSeek-V3",
           messages: messages,
           temperature: 0.6,
           max_tokens: 1000,
@@ -183,7 +183,7 @@ async function generateAnswer(messages) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "Pro/deepseek-ai/DeepSeek-R1",
+            model: "deepseek-ai/DeepSeek-V3",
             messages: simplifiedMessages,
             temperature: 0.6,
             max_tokens: 800,

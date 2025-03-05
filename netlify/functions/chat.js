@@ -5,11 +5,12 @@ import { Pinecone } from '@pinecone-database/pinecone';
 const CONFIG = {
   FETCH_TIMEOUT: 15000,          // 15 seconds for API calls
   PINECONE_TIMEOUT: 12000,       // 12 seconds for Pinecone operations
-  DEEPSEEK_TIMEOUT: 20000,       // 20 seconds for DeepSeek model generation
+  DEEPSEEK_TIMEOUT: 30000,       // 30 seconds for DeepSeek model generation (increased)
   RETRY_COUNT: 2,                // Number of retries for failed operations
   RETRY_DELAY: 1000,             // Initial delay between retries (1 second)
   MAX_HISTORY_LENGTH: 10,        // Maximum number of turns to keep in history
   MEMORY_EXPIRY: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+  NETLIFY_FUNCTION_TIMEOUT: 25000, // Netlify function timeout (26 seconds max for Netlify)
 };
 
 // In-memory chat history storage (will reset when function cold starts)
@@ -240,7 +241,103 @@ function updateChatHistory(sessionId, messages) {
   console.log(`Total active sessions: ${chatHistoryStore.size}`);
 }
 
+// Function to handle DeepSeek API calls with fallback
+async function generateAnswer(messages) {
+  try {
+    console.log("调用 DeepSeek-R1 模型生成回答...");
+    console.log(`提示包含 ${messages.length} 条消息`);
+
+    // First attempt - fully-featured call with history
+    const fullResponse = await withTimeout(
+      fetch("https://api.siliconflow.cn/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.SILICONFLOW_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "Pro/deepseek-ai/DeepSeek-R1",
+          messages: messages,
+          temperature: 0.6,
+          max_tokens: 1000,
+          frequency_penalty: 0.2,
+          presence_penalty: 0.2
+        }),
+      }),
+      CONFIG.DEEPSEEK_TIMEOUT,
+      "DeepSeek-R1 API call"
+    );
+
+    if (!fullResponse.ok) {
+      const errText = await fullResponse.text();
+      throw new Error(`DeepSeek API error: ${fullResponse.statusText} - ${errText}`);
+    }
+
+    const result = await fullResponse.json();
+    console.log("DeepSeek API 调用成功");
+    return result.choices[0].message;
+  } catch (error) {
+    console.error("DeepSeek API 调用失败:", error.message);
+
+    // If we exceed our function timeout limits, return an error message
+    const executionTime = Date.now() - startTime;
+    if (executionTime > CONFIG.NETLIFY_FUNCTION_TIMEOUT - 5000) { // 5s buffer
+      throw new Error("处理时间超出限制，请重试或简化您的问题。");
+    }
+
+    // Fallback attempt - simplify to just the most recent message
+    try {
+      console.log("尝试简化请求后重试...");
+
+      // Extract just the system prompt and the most recent user message
+      const simplifiedMessages = [
+        messages[0], // System prompt
+        messages[messages.length - 1] // Latest user message
+      ];
+
+      const fallbackResponse = await withTimeout(
+        fetch("https://api.siliconflow.cn/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${process.env.SILICONFLOW_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "Pro/deepseek-ai/DeepSeek-R1",
+            messages: simplifiedMessages,
+            temperature: 0.6,
+            max_tokens: 800, // Reduce for faster response
+          }),
+        }),
+        CONFIG.DEEPSEEK_TIMEOUT - 5000, // Reduce timeout for fallback
+        "DeepSeek-R1 fallback API call"
+      );
+
+      if (!fallbackResponse.ok) {
+        throw new Error(`Fallback API error: ${fallbackResponse.statusText}`);
+      }
+
+      const fallbackResult = await fallbackResponse.json();
+      console.log("DeepSeek API 简化调用成功");
+
+      // Add note about simplified context
+      const assistantMessage = fallbackResult.choices[0].message;
+      assistantMessage.content = "（注：由于响应时间限制，此回答基于简化的上下文）\n\n" + assistantMessage.content;
+
+      return assistantMessage;
+    } catch (fallbackError) {
+      console.error("简化调用也失败:", fallbackError.message);
+      throw new Error("无法获取AI回答，请稍后重试。");
+    }
+  }
+}
+
+// Track execution time
+let startTime;
+
 exports.handler = async (event, context) => {
+  startTime = Date.now(); // Start timing execution
+
   // Set context.callbackWaitsForEmptyEventLoop to false if in AWS Lambda
   if (context && typeof context.callbackWaitsForEmptyEventLoop !== 'undefined') {
     context.callbackWaitsForEmptyEventLoop = false;
@@ -282,6 +379,12 @@ exports.handler = async (event, context) => {
     const queryVector = await embedText(question);
     console.log("问题向量生成成功，维度:", queryVector.length);
 
+    // Check if we're approaching the timeout limit
+    const afterEmbeddingTime = Date.now() - startTime;
+    if (afterEmbeddingTime > CONFIG.NETLIFY_FUNCTION_TIMEOUT - 15000) { // If more than 10 seconds elapsed
+      throw new Error("处理时间过长，请重试。");
+    }
+
     // 2. Query Pinecone vector database
     const pineconeResult = await safeQuery(queryVector, 5, true);
     const matches = pineconeResult.matches || [];
@@ -297,7 +400,7 @@ exports.handler = async (event, context) => {
     if (matches.length === 0) {
       contextText = "没有找到与问题直接相关的参考资料。";
     }
-    console.log("没有找到与问题直接相关的参考资料。");
+    console.log(contextText);
 
     // 4. Construct conversation prompt with history
     let promptMessages = [
@@ -314,36 +417,8 @@ exports.handler = async (event, context) => {
     promptMessages.push({ role: 'user', content: `问题：${question}\n\n文章参考：\n${contextText}` });
 
     // 5. Call SiliconFlow API using DeepSeek-R1 model to generate response
-    const deepseekRes = await withTimeout(
-      fetch("https://api.siliconflow.cn/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.SILICONFLOW_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "Pro/deepseek-ai/DeepSeek-R1",
-          messages: promptMessages,
-          temperature: 0.6,
-          // Optional parameters for better conversation handling
-          max_tokens: 1000,         // Longer responses for complex questions
-          frequency_penalty: 0.2,   // Slightly reduce repetition
-          presence_penalty: 0.2     // Encourage mentioning new topics
-        }),
-      }),
-      CONFIG.DEEPSEEK_TIMEOUT,
-      "DeepSeek-R1 API call"
-    );
-
-    if (!deepseekRes.ok) {
-      const errText = await deepseekRes.text();
-      throw new Error(`硅基流动 DeepSeek-R1 API 请求失败: ${deepseekRes.statusText} - ${errText}`);
-    }
-
-    const deepseekData = await deepseekRes.json();
-    const assistantMessage = deepseekData.choices?.[0]?.message || { role: "assistant", content: "很抱歉，我无法生成回答。" };
-    const answer = assistantMessage.content;
-    console.log("使用硅基流动 DeepSeek-R1 模型生成回答成功");
+    const assistantMessage = await generateAnswer(promptMessages);
+    console.log("获取到AI回答，长度:", assistantMessage.content.length);
 
     // Update chat history with the new message exchange
     const updatedHistory = [...chatHistory];
@@ -357,20 +432,29 @@ exports.handler = async (event, context) => {
       statusCode: 200,
       headers,
       body: JSON.stringify({
-        answer,
-        sessionId // Return the sessionId for the client to use in follow-up requests
+        answer: assistantMessage.content,
+        sessionId, // Return the sessionId for the client to use in follow-up requests
+        executionTime: Date.now() - startTime // Include execution time for debugging
       }),
     };
   } catch (err) {
     console.error("Error:", err);
+
+    // Create a user-friendly error message
+    let errorMessage = "抱歉，获取回答失败。";
+    if (err.message.includes("timed out")) {
+      errorMessage = "回答生成超时，请稍后重试或尝试提出更简短的问题。";
+    } else if (err.message.includes("处理时间")) {
+      errorMessage = err.message;
+    }
+
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
-        error: "Internal Server Error",
-        details: err.message,
-        // Include timeout indication if applicable
-        isTimeout: err.message && err.message.includes("timed out")
+        error: errorMessage,
+        details: process.env.NODE_ENV === "development" ? err.message : undefined,
+        executionTime: Date.now() - startTime
       }),
     };
   }

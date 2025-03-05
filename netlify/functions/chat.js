@@ -39,22 +39,31 @@ async function embedText(text) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${process.env.SILICONFLOW_API_KEY}`,
+      "Authorization": `Bearer ${process.env.SILICONFLOW_API_KEY}`
     },
     body: JSON.stringify({
       model: "Pro/BAAI/bge-m3",
-      input: text,
-    }),
+      input: text
+    })
   });
 
   if (!response.ok) {
     throw new Error(`Embedding API request failed: ${response.statusText}`);
   }
+
   const result = await response.json();
-  if (!result.data || !result.data.embedding) {
-    throw new Error("Invalid embedding response format.");
+  console.log("Embedding API response:", result);  // 打印返回数据
+
+  // 根据实际返回结构调整解析逻辑
+  if (result.data && result.data.embedding) {
+    return result.data.embedding;
+  } else if (result.embedding) {
+    return result.embedding;
+  } else if (result.data && Array.isArray(result.data) && result.data.length > 0 && result.data[0].embedding) {
+    return result.data[0].embedding;
   }
-  return result.data.embedding;
+
+  throw new Error("Invalid embedding response format.");
 }
 
 exports.handler = async (event, context) => {

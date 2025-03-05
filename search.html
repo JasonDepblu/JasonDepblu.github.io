@@ -25,7 +25,12 @@ author: Jason
 
   // 从本地存储中获取会话ID，用于维持对话连续性
   let sessionId = localStorage.getItem('chatSessionId');
+  // 设置轮询相关参数
+  const POLL_INTERVAL = 2000; // 轮询间隔，毫秒
+  const MAX_POLL_ATTEMPTS = 30; // 最大轮询次数 (30 × 2秒 = 最多60秒)
+  const API_URL = 'https://jasondepblu.netlify.app/.netlify/functions';
 
+  // 主要提问函数
   sendBtn.onclick = async () => {
     const question = questionInput.value.trim();
     if (!question) return;
@@ -42,53 +47,27 @@ author: Jason
     const thinkingId = 'thinking-' + Date.now();
     appendThinkingMessage(thinkingId);
 
-    // 调用后端 API 获取回答
     try {
-      const res = await fetch('https://jasondepblu.netlify.app/.netlify/functions/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question,
-          sessionId // 将会话ID发送给服务器
-        })
-      });
+      // 第一步：调用RAG函数获取请求ID
+      const requestId = await initiateRequest(question, sessionId);
+
+      if (!requestId) {
+        throw new Error('无法获取请求ID，请重试');
+      }
+
+      // 第二步：开始轮询检查结果
+      const result = await pollForResult(requestId, thinkingId);
 
       // 移除"思考中"提示
       removeThinkingMessage(thinkingId);
 
-      if (!res.ok) {
-        throw new Error(`服务器返回错误: ${res.status}`);
-      }
+      // 根据结果更新UI
+      handleResult(result);
 
-      const data = await res.json();
-
-      // 保存服务器返回的会话ID
-      if (data.sessionId) {
-        sessionId = data.sessionId;
-        localStorage.setItem('chatSessionId', sessionId);
-      }
-
-      // 显示回答
-      if (data.answer) {
-        const answerMarkdown = data.answer;
-        // 使用 marked 将Markdown转为HTML
-        const answerHtml = marked.parse(answerMarkdown);
-        appendMessage('ai', answerHtml);
-      } else if (data.error) {
-        appendMessage('ai', `<p class="error-message">错误: ${data.error}</p>`);
-      } else {
-        appendMessage('ai', '<p class="error-message">收到了没有答案的响应</p>');
-      }
-
-      // 可选：显示处理时间（调试用）
-      if (data.totalTime) {
-        console.log(`总处理时间: ${data.totalTime}ms`);
-      }
     } catch(err) {
       // 移除"思考中"提示
       removeThinkingMessage(thinkingId);
-
-      console.error('API 调用失败:', err);
+      console.error('处理失败:', err);
       appendMessage('ai', `<p class="error-message">抱歉，获取回答失败: ${err.message}</p>`);
     } finally {
       // 恢复发送按钮
@@ -96,6 +75,135 @@ author: Jason
       sendBtn.textContent = '提交';
     }
   };
+
+  // 发起初始请求，获取requestId
+  async function initiateRequest(question, sessionId) {
+    try {
+      const response = await fetch(`${API_URL}/rag`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, sessionId })
+      });
+
+      if (!response.ok) {
+        throw new Error(`RAG处理失败: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // 更新会话ID
+      if (data.sessionId) {
+        sessionId = data.sessionId;
+        localStorage.setItem('chatSessionId', sessionId);
+      }
+
+      return data.requestId;
+    } catch (error) {
+      console.error('初始化请求失败:', error);
+      throw error;
+    }
+  }
+
+  // 轮询检查结果
+  async function pollForResult(requestId, thinkingId, attempts = 0) {
+    if (attempts >= MAX_POLL_ATTEMPTS) {
+      throw new Error('回答生成超时，请稍后再试');
+    }
+
+    try {
+      // 更新思考中动画，每次轮询时显示不同的提示
+      updateThinkingMessage(thinkingId, attempts);
+
+      const response = await fetch(`${API_URL}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId })
+      });
+
+      if (!response.ok) {
+        // 如果状态检查失败，可能是函数尚未部署好
+        console.warn(`状态检查失败 (${response.status})，继续轮询...`);
+        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+        return pollForResult(requestId, thinkingId, attempts + 1);
+      }
+
+      const result = await response.json();
+
+      if (result.status === 'completed') {
+        // 处理完成
+        console.log('回答生成完成，耗时:', attempts * (POLL_INTERVAL/1000), '秒');
+        return result;
+      } else if (result.status === 'processing') {
+        // 继续等待
+        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+        return pollForResult(requestId, thinkingId, attempts + 1);
+      } else if (result.status === 'failed') {
+        // 处理失败
+        throw new Error(result.error || '处理失败');
+      } else {
+        // 状态未知
+        console.warn('未知状态:', result.status);
+        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+        return pollForResult(requestId, thinkingId, attempts + 1);
+      }
+    } catch (error) {
+      if (error.message.includes('回答生成超时')) {
+        throw error;
+      }
+
+      console.warn('轮询过程中出错:', error.message);
+      // 出错时不立即放弃，继续尝试几次
+      if (attempts < 5) {
+        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL));
+        return pollForResult(requestId, thinkingId, attempts + 1);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  // 处理最终结果
+  function handleResult(result) {
+    if (result.answer) {
+      // 更新会话ID
+      if (result.sessionId) {
+        sessionId = result.sessionId;
+        localStorage.setItem('chatSessionId', sessionId);
+      }
+
+      // 渲染回答
+      const answerHtml = marked.parse(result.answer);
+      appendMessage('ai', answerHtml);
+
+    } else {
+      // 没有回答
+      appendMessage('ai', '<p class="error-message">处理完成，但没有获得回答</p>');
+    }
+  }
+
+  // 更新"思考中"提示，使轮询过程更生动
+  function updateThinkingMessage(id, attempts) {
+    const thinkingDiv = document.getElementById(id);
+    if (!thinkingDiv) return;
+
+    const thinkingTexts = [
+      '思考中',
+      '搜索知识库中',
+      '整理回答中',
+      '正在生成回答',
+      '即将完成'
+    ];
+
+    // 根据轮询次数选择不同的提示文本
+    const index = Math.min(Math.floor(attempts / 6), thinkingTexts.length - 1);
+    const dotsElem = thinkingDiv.querySelector('.dots');
+
+    if (dotsElem) {
+      const messageElem = dotsElem.parentElement;
+      messageElem.textContent = thinkingTexts[index];
+      messageElem.appendChild(dotsElem);
+    }
+  }
 
   function appendMessage(sender, content) {
     const msgDiv = document.createElement('div');
@@ -154,7 +262,7 @@ author: Jason
     }
   });
 
-  // 添加清除会话按钮（可选）
+  // 添加清除会话按钮
   function addClearSessionButton() {
     const inputArea = document.getElementById('input-area');
     const clearBtn = document.createElement('button');

@@ -165,10 +165,10 @@ exports.handler = async (event, context) => {
       contextText += `【参考${idx + 1}】${match.metadata?.title || "未知标题"}: ${match.metadata?.content || "无内容"}\n`;
     });
 
-    // 如果没有匹配结果，提供一个友好的回复
-    if (matches.length === 0) {
-      contextText = "没有找到与问题直接相关的参考资料。";
-    }
+    // // 如果没有匹配结果，提供一个友好的回复
+    // if (matches.length === 0) {
+    //   contextText = "没有找到与问题直接相关的参考资料。";
+    // }
 
     // 4. 构造对话提示
     const promptMessages = [

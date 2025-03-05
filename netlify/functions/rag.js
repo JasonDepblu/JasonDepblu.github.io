@@ -1,9 +1,7 @@
-import fetch from 'node-fetch';
-import { Pinecone } from '@pinecone-database/pinecone';
-
-// 内存存储 - 用于存储请求状态和结果
-// 注意：这只在函数实例存活期间有效，Netlify函数冷启动后会重置
-global.requestStorage = global.requestStorage || {};
+const fetch = require('node-fetch');
+const { Pinecone } = require('@pinecone-database/pinecone');
+// 导入存储模块
+const storage = require('./storage');
 
 // 配置参数
 const CONFIG = {
@@ -11,53 +9,14 @@ const CONFIG = {
   PINECONE_TIMEOUT: 6000,       // 6秒Pinecone操作超时
   RETRY_COUNT: 1,                // 重试次数
   RETRY_DELAY: 500,              // 初始重试延迟(毫秒)
-  STORAGE_EXPIRY: 10 * 60 * 1000, // 存储数据10分钟后过期
+  STORAGE_EXPIRY: 600,          // 存储数据10分钟后过期 (秒)
 };
-
-// 存储函数 - 将数据保存到内存中
-function saveToStorage(requestId, data) {
-  // 添加过期时间
-  const expiry = Date.now() + CONFIG.STORAGE_EXPIRY;
-  global.requestStorage[requestId] = {
-    ...data,
-    expiry
-  };
-  
-  console.log(`已保存请求数据，ID: ${requestId}，状态: ${data.status}`);
-  return true;
-}
-
-// 获取函数 - 从内存中获取数据
-function getFromStorage(requestId) {
-  // 清理过期数据
-  cleanExpiredStorage();
-  
-  // 获取数据
-  return global.requestStorage[requestId] || null;
-}
-
-// 清理过期数据
-function cleanExpiredStorage() {
-  const now = Date.now();
-  let cleanCount = 0;
-  
-  for (const requestId in global.requestStorage) {
-    if (global.requestStorage[requestId].expiry < now) {
-      delete global.requestStorage[requestId];
-      cleanCount++;
-    }
-  }
-  
-  if (cleanCount > 0) {
-    console.log(`已清理 ${cleanCount} 条过期数据`);
-  }
-}
 
 // 帮助函数：给Promise添加超时
 const withTimeout = (promise, timeoutMs, operationName) => {
   return Promise.race([
     promise,
-    new Promise((_, reject) => 
+    new Promise((_, reject) =>
       setTimeout(() => reject(new Error(`${operationName} operation timed out after ${timeoutMs}ms`)), timeoutMs)
     )
   ]);
@@ -72,7 +31,7 @@ const withRetry = async (operation, maxRetries, initialDelay, operationName) => 
     } catch (error) {
       console.warn(`${operationName} attempt ${attempt + 1}/${maxRetries + 1} failed:`, error.message);
       lastError = error;
-      
+
       if (attempt < maxRetries) {
         // 指数退避策略
         const delay = initialDelay * Math.pow(2, attempt);
@@ -91,7 +50,7 @@ let pineconeClient = null;
 // 初始化Pinecone
 async function initPinecone() {
   if (pineconeIndex) return pineconeIndex;
-  
+
   return withRetry(async () => {
     try {
       console.log("正在初始化 Pinecone...");
@@ -111,7 +70,7 @@ async function initPinecone() {
         CONFIG.PINECONE_TIMEOUT,
         "Pinecone初始化"
       );
-      
+
       console.log("Pinecone 索引初始化成功");
       return pineconeIndex;
     } catch (err) {
@@ -185,7 +144,7 @@ async function embedText(text) {
 
       const result = await response.json();
       console.log("嵌入API响应成功");
-      
+
       // 提取向量数据
       let embedding = null;
       if (result.data && Array.isArray(result.data) && result.data.length > 0 && result.data[0].embedding) {
@@ -227,15 +186,18 @@ async function embedText(text) {
 async function triggerLlmFunction(data) {
   try {
     console.log("异步触发LLM函数...");
-    
+
     // 使用更可靠的触发方式
-    await fetch(`${process.env.URL}/.netlify/functions/llm`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-      // 增加超时时间
-      timeout: 5000
-    }).catch(err => {
+    try {
+      await fetch(`${process.env.URL}/.netlify/functions/llm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        // 增加超时时间
+        timeout: 5000
+      });
+      console.log("LLM函数触发成功");
+    } catch (err) {
       console.error("异步调用LLM函数失败:", err);
       // 重要：失败后立即重试一次
       setTimeout(() => {
@@ -245,9 +207,8 @@ async function triggerLlmFunction(data) {
           body: JSON.stringify(data)
         }).catch(e => console.error("LLM函数重试也失败:", e));
       }, 1000);
-    });
-    
-    console.log("LLM函数触发成功");
+    }
+
     return true;
   } catch (error) {
     console.error("触发LLM函数出错:", error);
@@ -258,7 +219,7 @@ async function triggerLlmFunction(data) {
 // 主处理函数
 exports.handler = async (event, context) => {
   const startTime = Date.now();
-  
+
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Content-Type": "application/json",
@@ -281,59 +242,65 @@ exports.handler = async (event, context) => {
     // 解析请求
     const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
     const question = body.question;
-    
+
     // 生成或使用会话ID
     const sessionId = body.sessionId || `session_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
-    
+
     if (!question) {
       return { statusCode: 400, headers, body: JSON.stringify({ error: "未提供问题" }) };
     }
-    
+
     // 生成请求ID
     const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
     console.log(`处理新请求: ${requestId}, 问题: "${question.substring(0, 50)}${question.length > 50 ? '...' : ''}"`);
-    
+
     // 初始化请求存储
-    saveToStorage(requestId, {
+    await storage.saveData(requestId, {
       status: "processing",
       question,
       sessionId,
       startTime
-    });
-    
+    }, CONFIG.STORAGE_EXPIRY);
+
+    console.log(`初始化请求存储成功: ${requestId}`);
+
     // 异步处理RAG查询
     // 注意：这里使用void操作符，不等待处理完成
     void (async () => {
       try {
+        console.log(`开始异步处理请求: ${requestId}`);
+
         // 1. 向量化问题
         const queryVector = await embedText(question);
-        console.log("问题向量生成成功，维度:", queryVector.length);
-    
+        console.log(`问题向量生成成功，维度: ${queryVector.length}`);
+
         // 2. 查询Pinecone向量数据库
         const pineconeResult = await safeQuery(queryVector, 5, true);
         const matches = pineconeResult.matches || [];
-        console.log("Pinecone查询结果数量:", matches.length);
-    
+        console.log(`Pinecone查询结果数量: ${matches.length}`);
+
         // 3. 整理检索到的上下文文本
         let contextText = "";
         matches.forEach((match, idx) => {
           contextText += `【参考${idx + 1}】${match.metadata?.title || "未知标题"}: ${match.metadata?.content || "无内容"}\n`;
         });
-    
+
         if (matches.length === 0) {
           contextText = "没有找到与问题直接相关的参考资料。";
         }
-        console.log("上下文:", contextText.substring(0, 100) + (contextText.length > 100 ? "..." : ""));
-    
+        console.log(`上下文: ${contextText.substring(0, 100)}${contextText.length > 100 ? "..." : ""}`);
+
         // 更新存储的请求状态
-        saveToStorage(requestId, {
+        await storage.saveData(requestId, {
           status: "rag_completed",
           question,
           sessionId,
           contextText,
           startTime
-        });
-    
+        }, CONFIG.STORAGE_EXPIRY);
+
+        console.log(`RAG处理完成，更新存储状态: ${requestId}`);
+
         // 4. 触发LLM处理
         await triggerLlmFunction({
           requestId,
@@ -342,13 +309,13 @@ exports.handler = async (event, context) => {
           contextText
         });
       } catch (error) {
-        console.error("RAG处理过程中出错:", error);
-        saveToStorage(requestId, {
+        console.error(`RAG处理过程中出错 (${requestId}):`, error);
+        await storage.saveData(requestId, {
           status: "failed",
           error: `RAG处理失败: ${error.message}`,
           sessionId,
           startTime
-        });
+        }, CONFIG.STORAGE_EXPIRY);
       }
     })();
     

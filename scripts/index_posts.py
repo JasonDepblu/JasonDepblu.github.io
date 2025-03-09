@@ -1,9 +1,5 @@
 #%%
-import os
-os.environ["PINECONE_API_KEY"] = "pcsk_4AzPMY_K9V559BgTzeDKvpBy7MkmiiDV8NhBrPGskRBZRVcYHxbcS2AAxiL7iSantnZgNU"
-os.environ["PINECONE_ENVIRONMENT"] = "us-east-1"
-os.environ["PINECONE_INDEX_NAME"] = "jasonsblog"
-os.environ["SILICONE_API_KEY"] = "sk-lunjunetzfapvbatqujtywvkujbyqyinfemjquasvmdatqqn"
+
 
 # %%
 import os

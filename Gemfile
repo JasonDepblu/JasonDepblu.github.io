@@ -4,7 +4,7 @@ source "https://rubygems.org"
 ruby '~> 3.2.2'  # 降低 Ruby 版本要求 3.3.5  3.2.2 3.3.2'
 
 # This will help ensure the proper Jekyll version is running.
-gem 'jekyll', '~> 4.2.0' # 或 '~> 5.0.0' 以使用最新稳定版本 3.9.3
+gem 'jekyll', '~> 3.9.3' # 或 '~> 5.0.0' 以使用最新稳定版本 3.9.3
 gem 'jekyll-sass-converter'
 gem 'csv'
 

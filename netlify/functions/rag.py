@@ -6,7 +6,9 @@ import pinecone
 from pinecone import Pinecone
 import requests
 from pathlib import Path
+from rag import sessions
 
+print("rag function loaded")
 # Initialize Pinecone client
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 PINECONE_ENVIRONMENT = os.environ.get("PINECONE_ENVIRONMENT", "gcp-starter")
@@ -36,7 +38,7 @@ def get_embedding(text):
     }
     
     response = requests.post(
-        "https://siliconeflow.com/api/v1/embeddings",
+        url="https://api.siliconflow.cn/v1/embeddings",
         headers=headers,
         json=payload
     )

@@ -5,9 +5,16 @@
   # Set the directory that contains the functions
   functions = "netlify/functions"
 
+[build.environment]
+  RUBY_VERSION = "3.2.2"
+
+[dev]
+  targetPort = 4000
+  targetPath = "/myblog/"
+
 # Set up redirects for the functions
 [[redirects]]
-  from = "/.netlify/functions/*"
+  from = "functions/*"
   to = "/.netlify/functions/:splat"
   status = 200
   force = true

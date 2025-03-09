@@ -36,7 +36,7 @@ def get_embedding(text):
     }
     
     response = requests.post(
-        "https://siliconeflow.com/api/v1/embeddings",
+        url="https://api.siliconflow.cn/v1/embeddings",
         headers=headers,
         json=payload
     )

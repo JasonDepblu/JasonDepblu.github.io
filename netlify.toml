@@ -5,6 +5,9 @@
   # Set the directory that contains the functions
   functions = "netlify/functions"
 
+[build.environment]
+  RUBY_VERSION = "3.3.2"
+
 # Set up redirects for the functions
 [[redirects]]
   from = "/.netlify/functions/*"

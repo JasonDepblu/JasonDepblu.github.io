@@ -7,6 +7,7 @@ from pinecone import Pinecone
 import requests
 from pathlib import Path
 
+print("rag function loaded")
 # Initialize Pinecone client
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 PINECONE_ENVIRONMENT = os.environ.get("PINECONE_ENVIRONMENT", "gcp-starter")
@@ -199,7 +200,8 @@ def handler(event, context):
         return {
             "statusCode": 200,
             "headers": {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*"
             },
             "body": json.dumps({
                 "requestId": request_id,
@@ -218,3 +220,6 @@ def handler(event, context):
                 "error": str(e)
             })
         }
+
+
+

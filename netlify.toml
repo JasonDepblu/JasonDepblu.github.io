@@ -8,6 +8,10 @@
 [build.environment]
   RUBY_VERSION = "3.2.2"
 
+[dev]
+  targetPort = 4000
+  targetPath = "/myblog/"
+
 # Set up redirects for the functions
 [[redirects]]
   from = "/functions/*"

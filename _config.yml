@@ -1,79 +1,10 @@
-# Site settings
-title: "Jason'Blog"
-email: depblugz@gmail.com
+title: Your Site Title
+email: your-email@example.com
 description: >-
-  We can only see a short distance ahead, 
-  but we can see plenty there that needs to be done！
-baseurl: "/myblog"
-url: "https://JasonDepblu.github.io"
-github_username: Jason
-
-# Build settings
-remote_theme: jekyll/minima
-
+  Your site description.
+baseurl: "" # Set to empty string for root path or "/myblog" for subfolder
+url: "" # the base hostname & protocol for your site
+markdown: kramdown
+theme: minima
 plugins:
   - jekyll-feed
-  - jekyll-sitemap
-  - jekyll-seo-tag
-  - jekyll-read-time
-  - jekyll-lunr-js-search
-
-lunr:
-  languages: [en]
-  fields:
-    - title
-    - content
-
-# Syntax highlighting
-highlighter: rouge
-
-# Sass settings
-sass:
-  style: compressed
-
-# Default layout settings
-defaults:
-  - scope:
-      path: ""
-      type: "posts"
-    values:
-      layout: "post"
-  - scope:
-      path: "index.html"
-    values:
-      layout: "home"
-
-#kramdown:
-#  syntax_highlighter_opts:
-#    block: true
-#    inline: true
-#  input: GFM
-
-kramdown:
-  input: GFM
-  parse_block_html: true
-  math_engine: mathjax
-
-search:
-  path: "/search.json"  # 生成的 search.json 文件路径
-
-collections:
-  navigation:
-    output: true
-
-markdown: kramdown
-
-excerpt_separator: "<!--more-->"
-
-# Exclude from processing
-exclude:
-  - .sass-cache/
-  - .jekyll-cache/
-  - gemfiles/
-  - Gemfile
-  - Gemfile.lock
-  - node_modules/
-  - vendor/bundle/
-  - vendor/cache/
-  - vendor/gems/
-  - vendor/ruby/

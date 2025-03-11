@@ -1,0 +1,2 @@
+# Session storage dictionary
+sessions = {}

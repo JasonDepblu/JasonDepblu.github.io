@@ -1,20 +1,30 @@
 [build]
-  # Set the directory to publish
   publish = "_site"
-
-  # Set the directory that contains the functions
   functions = "netlify/functions"
 
-[build.environment]
-  RUBY_VERSION = "3.2.2"
+[dev]
+  publish = "_site"
+  functions = "netlify/functions"
+  # Specify framework to avoid auto-detection issues
+#  framework = "#custom"
 
-#[dev]
-#  targetPort = 4000
-#  targetPath = "/myblog/"
+[functions]
+  directory = "netlify/functions"
 
-# Set up redirects for the functions
+[functions.rag]
+  timeout = 60
+
+[functions.status]
+  timeout = 30
+
 [[redirects]]
-  from = "functions/*"
+  from = "/functions/*"
   to = "/.netlify/functions/:splat"
   status = 200
+  force = true
+
+[[redirects]]
+  from = "/myblog/*"
+  to = "/:splat"
+  status = 301
   force = true

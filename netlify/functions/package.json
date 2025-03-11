@@ -1,0 +1,9 @@
+{
+  "name": "netlify-functions",
+  "version": "1.0.0",
+  "description": "Netlify Functions",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

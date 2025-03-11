@@ -1,6 +1,6 @@
 [build.environment]
   RUBY_VERSION = "3.2.2"
-  PYTHON_VERSION = "3.11"
+#  PYTHON_VERSION = "3.11"
 
 [build]
   publish = "_site"
@@ -15,8 +15,8 @@
 [functions]
   directory = "netlify/functions"
 
-[functions.environment]
-  PYTHON_VERSION = "3.11"
+#[functions.environment]
+#  PYTHON_VERSION = "3.11"
 
 [functions.rag]
   timeout = 60

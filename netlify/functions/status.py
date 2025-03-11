@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from rag import sessions  # Import the sessions dictionary from rag.py
+from rag import sessions  # Import the sessions dictionary from index.py
 
 def handler(event, context):
     """Handle the status check request."""

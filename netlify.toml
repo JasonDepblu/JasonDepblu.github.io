@@ -28,8 +28,8 @@
 
 [[redirects]]
   from = "/functions/*"
-#  to = "/.netlify/functions/:splat"
-  to = "http://localhost:8000/api/:splat"
+  to = "/.netlify/functions/:splat"
+#  to = "http://localhost:8000/api/:splat"
   status = 200
   force = true
 

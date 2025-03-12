@@ -29,10 +29,10 @@ author: Jason
   const POLL_INTERVAL = 3000; // 轮询间隔，毫秒
   const MAX_POLL_ATTEMPTS = 50; // 最大轮询次数 (50 × 3秒 = 最多150秒)
   // API 端点配置 - 现在指向同一个 Python 服务
-  // const API_URL = 'https://jasondepblu.netlify.app/.netlify/functions';
+  const API_URL = 'https://jasondepblu.netlify.app/.netlify/functions';
   // 或者如果你运行的是本地服务器，可以使用：
   // const API_URL = 'http://localhost:8000/api';
-  const API_URL = 'functions/';
+  // const API_URL = 'functions/';
 
   // 主要提问函数
   sendBtn.onclick = async () => {

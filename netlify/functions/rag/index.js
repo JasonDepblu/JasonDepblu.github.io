@@ -7,6 +7,7 @@ const sessionStore = require('../shared/session_store.js');
 exports.handler = async (event, context) => {
   try {
     // Parse the request body
+    const projectRoot = process.cwd();
     const scriptPath = path.join(projectRoot, 'netlify', 'functions', 'rag', 'index.py');
 
     if (!fs.existsSync(scriptPath)) {

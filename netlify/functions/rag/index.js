@@ -7,10 +7,7 @@ const sessionStore = require('../shared/session_store.js');
 exports.handler = async (event, context) => {
   try {
     // Parse the request body
-    const scriptPath = path.join(__dirname, 'index.py');
-    // Add detailed logging about paths
-    console.log("Function directory:", __dirname);
-    console.log("Looking for Python script at:", scriptPath);
+    const scriptPath = path.join(projectRoot, 'netlify', 'functions', 'rag', 'index.py');
 
     if (!fs.existsSync(scriptPath)) {
       console.error(`Python script not found at: ${scriptPath}`);

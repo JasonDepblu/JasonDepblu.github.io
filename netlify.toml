@@ -15,7 +15,7 @@
 [functions]
   directory = "netlify/functions"
   # This pattern tells Netlify to include .py files and requirements.txt
-  included_files = ["netlify/functions/**/*.py", "netlify/functions/**/requirements.txt"]
+#  included_files = ["netlify/functions/**/*.py", "netlify/functions/**/requirements.txt"]
 
 #[functions.environment]
 #  PYTHON_VERSION = "3.11"
@@ -28,7 +28,8 @@
 
 [[redirects]]
   from = "/functions/*"
-  to = "/.netlify/functions/:splat"
+#  to = "/.netlify/functions/:splat"
+  to = "http://localhost:8000/api/:splat"
   status = 200
   force = true
 

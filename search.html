@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Comunication
+title: Communication
 permalink: /search/
 date: 2024-12-3
 author: Jason
@@ -27,10 +27,12 @@ author: Jason
   let sessionId = localStorage.getItem('chatSessionId');
   // 设置轮询相关参数
   const POLL_INTERVAL = 3000; // 轮询间隔，毫秒
-  const MAX_POLL_ATTEMPTS = 50; // 最大轮询次数 (30 × 2秒 = 最多60秒)
-  // const API_URL = '/functions';
-  // const API_URL = 'https://jasondepblu.netlify.app/functions';
-  const API_URL = 'https://jasondepblu.netlify.app/.netlify/functions';
+  const MAX_POLL_ATTEMPTS = 50; // 最大轮询次数 (50 × 3秒 = 最多150秒)
+  // API 端点配置 - 现在指向同一个 Python 服务
+  // const API_URL = 'https://jasondepblu.netlify.app/.netlify/functions';
+  // 或者如果你运行的是本地服务器，可以使用：
+  // const API_URL = 'http://localhost:8000/api';
+  const API_URL = 'functions/';
 
   // 主要提问函数
   sendBtn.onclick = async () => {
@@ -113,7 +115,8 @@ author: Jason
       console.warn(`达到最大轮询次数 (${MAX_POLL_ATTEMPTS})，但仍在后台处理`);
       return {
         status: "timeout",
-        message: "回答生成时间较长，但仍在后台处理中。您可以稍后刷新页面查看结果。"
+        requestId: requestId, // 保存请求ID以便后续检查
+        message: "回答生成时间较长，但仍在后台处理中。您可以稍后检查是否已完成。"
       };
     }
 
@@ -154,8 +157,7 @@ author: Jason
         return pollForResult(requestId, thinkingId, attempts + 1);
       }
     } catch (error) {
-
-        // 对网络错误更宽容
+      // 对网络错误更宽容
       console.warn(`轮询第 ${attempts+1} 次出错:`, error.message);
 
       // 网络错误直接重试，不计入失败次数
@@ -181,7 +183,6 @@ author: Jason
 
   // 处理最终结果
   function handleResult(result) {
-
     if (result.status === "timeout") {
       // 超时但仍在处理
       appendMessage('ai', `<p class="processing-message">
@@ -209,21 +210,21 @@ author: Jason
   }
 
   // 添加检查功能
-async function checkAnswer(requestId) {
-  if (!requestId) return;
+  async function checkAnswer(requestId) {
+    if (!requestId) return;
 
-  const thinkingId = 'checking-' + Date.now();
-  appendThinkingMessage(thinkingId);
+    const thinkingId = 'checking-' + Date.now();
+    appendThinkingMessage(thinkingId);
 
-  try {
-    const result = await pollForResult(requestId, thinkingId, 0);
-    removeThinkingMessage(thinkingId);
-    handleResult(result);
-  } catch (error) {
-    removeThinkingMessage(thinkingId);
-    appendMessage('ai', `<p class="error-message">检查失败: ${error.message}</p>`);
+    try {
+      const result = await pollForResult(requestId, thinkingId, 0);
+      removeThinkingMessage(thinkingId);
+      handleResult(result);
+    } catch (error) {
+      removeThinkingMessage(thinkingId);
+      appendMessage('ai', `<p class="error-message">检查失败: ${error.message}</p>`);
+    }
   }
-}
 
   // 更新"思考中"提示，使轮询过程更生动
   function updateThinkingMessage(id, attempts) {
@@ -326,6 +327,9 @@ async function checkAnswer(requestId) {
 
     inputArea.appendChild(clearBtn);
   }
+
+  // 添加全局函数，使按钮onclick能正常工作
+  window.checkAnswer = checkAnswer;
 
   // 页面加载完成后添加清除会话按钮
   window.addEventListener('DOMContentLoaded', addClearSessionButton);

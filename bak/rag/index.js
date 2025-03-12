@@ -7,11 +7,11 @@ const sessionStore = require('../shared/session_store.js');
 exports.handler = async (event, context) => {
   try {
     // Parse the request body
-    const scriptPath = path.join(__dirname, 'index.py');
+    const scriptPath = path.join(__dirname, 'combined_status.py');
 
     console.log("Function directory:", __dirname);
     console.log("Looking for Python script at:", scriptPath);
-    // const scriptPath = path.join(projectRoot, 'netlify', 'functions', 'rag', 'index.py');
+    // const scriptPath = path.join(projectRoot, 'netlify', 'functions', 'rag', 'combined_status.py');
 
     if (!fs.existsSync(scriptPath)) {
       console.error(`Python script not found at: ${scriptPath}`);
@@ -82,7 +82,7 @@ exports.handler = async (event, context) => {
 // Function to process the RAG request in the background
 function processRagInBackground(requestId, sessionId, question, event) {
   const projectRoot = process.cwd();
-  const scriptPath = path.join(projectRoot, 'netlify', 'functions', 'rag', 'index.py');
+  const scriptPath = path.join(projectRoot, 'netlify', 'functions', 'rag', 'combined_status.py');
 
   // Make sure the Python script exists
   if (!fs.existsSync(scriptPath)) {

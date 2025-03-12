@@ -14,6 +14,8 @@
 
 [functions]
   directory = "netlify/functions"
+  # This pattern tells Netlify to include .py files and requirements.txt
+  included_files = ["netlify/functions/**/*.py", "netlify/functions/**/requirements.txt"]
 
 #[functions.environment]
 #  PYTHON_VERSION = "3.11"
@@ -30,8 +32,8 @@
   status = 200
   force = true
 
-[[redirects]]
-  from = "/myblog/*"
-  to = "/:splat"
-  status = 301
-  force = true
+#[[redirects]]
+#  from = "/myblog/*"
+#  to = "/:splat"
+#  status = 301
+#  force = true

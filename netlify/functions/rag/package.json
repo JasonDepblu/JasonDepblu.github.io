@@ -1,0 +1,10 @@
+{
+  "name": "rag-function",
+  "version": "1.0.0",
+  "description": "RAG Function",
+  "main": "index.js",
+  "files": [
+    "index.py",
+    "requirements.txt"
+  ]
+}

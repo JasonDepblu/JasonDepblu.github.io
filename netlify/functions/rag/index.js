@@ -7,6 +7,21 @@ const sessionStore = require('../shared/session_store.js');
 exports.handler = async (event, context) => {
   try {
     // Parse the request body
+    const scriptPath = path.join(__dirname, 'index.py');
+    // Add detailed logging about paths
+    console.log("Function directory:", __dirname);
+    console.log("Looking for Python script at:", scriptPath);
+
+    if (!fs.existsSync(scriptPath)) {
+      console.error(`Python script not found at: ${scriptPath}`);
+      console.log("Directory contents:", fs.readdirSync(__dirname));
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "Python script not found" })
+      };
+    }
+
+    console.log("Python script found, proceeding with execution");
     const body = JSON.parse(event.body || '{}');
     const question = body.question || '';
     let sessionId = body.sessionId;

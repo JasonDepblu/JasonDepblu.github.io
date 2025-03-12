@@ -1,3 +1,8 @@
+import os
+os.environ["PINECONE_API_KEY"] = "pcsk_4AzPMY_K9V559BgTzeDKvpBy7MkmiiDV8NhBrPGskRBZRVcYHxbcS2AAxiL7iSantnZgNU"
+os.environ["PINECONE_ENVIRONMENT"] = "us-east-1"
+os.environ["PINECONE_INDEX_NAME"] = "jasonsblog"
+os.environ["SILICONE_API_KEY"] = "sk-lunjunetzfapvbatqujtywvkujbyqyinfemjquasvmdatqqn"
 import json
 import os
 import uuid
@@ -53,7 +58,7 @@ def get_embedding(text):
     return response.json()["data"][0]["embedding"]
 
 
-def retrieve_context(query_embedding, top_k=3):
+def retrieve_context(query_embedding, top_k=9):
     """Retrieve the top k most relevant documents from Pinecone."""
     print("DEBUG: Querying Pinecone with embedding")
     results = index.query(
@@ -104,7 +109,7 @@ def generate_answer(question, contexts, conversation_history=None):
                                   for item in conversation_history])
 
     # Construct the prompt
-    system_prompt = """You are a helpful assistant for a personal blog. Answer the user's questions based on the provided context from blog posts. 
+    system_prompt = """You are a helpful assistant for a personal blog. Answer the user's questions based on the blog posts contents. 
 If you cannot find the answer in the provided context, acknowledge that and provide your best general knowledge response.
 Always include relevant links to blog posts when available in the context. Use markdown formatting in your responses.
 Keep your answers concise and focused on the user's question."""
@@ -133,8 +138,8 @@ Please provide a helpful response based on the context information.
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.7,
-        "max_tokens": 1000
+        "temperature": 0.6,
+        "max_tokens": 5000
     }
 
     response = requests.post(

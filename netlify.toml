@@ -1,6 +1,6 @@
 [build.environment]
-  RUBY_VERSION = "3.2.2"
-  PYTHON_VERSION = "3.10"
+  RUBY_VERSION = "3.3.5"
+#  PYTHON_VERSION = "3.10"
 
 [build]
   publish = "_site"

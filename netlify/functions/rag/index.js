@@ -130,6 +130,7 @@ async function evaluateNeedForRAG(question, conversationHistory) {
       如果问题是闲聊、打招呼、感谢或简单的后续问题（基于之前对话可以回答），请回答 "NO_RAG"。
       只返回 "NEED_RAG" 或 "NO_RAG"，不要有其他文字。
      `;
+    console.log("Evaluating if RAG is needed for the question 2...");
 
     // 调用 LLM 进行评估
     const response = await axios.post(
@@ -149,6 +150,8 @@ async function evaluateNeedForRAG(question, conversationHistory) {
         }
       }
     );
+
+    console.log("Evaluating if RAG is needed for the question 3...");
 
     if (response.status !== 200) {
       throw new Error(`Error in RAG evaluation: ${response.data}`);

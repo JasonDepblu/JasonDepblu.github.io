@@ -1,17 +1,27 @@
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const axios = require('axios');
+const axios = require('axios'); // 保留axios用于硅基流动API
+const { OpenAI } = require('openai'); // 用于DeepSeek API
 const { Pinecone } = require('@pinecone-database/pinecone');
 const sessionStore = require('../shared/session_store.js');
 
 // 环境变量配置
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
 const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME || 'blog-content';
-const SILICONE_API_KEY = process.env.SILICONE_API_KEY || process.env.DEEPSEEK_API_KEY; // 兼容两种变量命名
-const EMBEDDING_MODEL = 'Pro/BAAI/bge-m3';
-const LLM_MODEL = 'Pro/deepseek-ai/DeepSeek-R1';
-const LLM_MODEL2 = 'Qwen/Qwen2.5-14B-Instruct';
+const SILICONE_API_KEY = process.env.SILICONE_API_KEY; // 硅基流动API密钥
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY; // DeepSeek API密钥
+
+// 初始化DeepSeek API客户端
+const openai = new OpenAI({
+  baseURL: 'https://api.deepseek.com',
+  apiKey: DEEPSEEK_API_KEY
+});
+
+// 模型名称配置
+const EMBEDDING_MODEL = 'Pro/BAAI/bge-m3'; // 硅基流动嵌入模型
+const DEEPSEEK_CHAT_MODEL = 'deepseek-chat'; // 用于RAG判断
+const DEEPSEEK_REASONER_MODEL = 'deepseek-reasoner'; // 用于回答生成
 
 // 初始化 Pinecone 客户端
 let pineconeIndex = null;
@@ -55,12 +65,14 @@ function quickEvaluateNeedForRAG(question) {
   return null; // 未确定，需要进一步评估
 }
 
+// 更新Pinecone初始化函数 - 添加environment参数
 async function initPinecone() {
   try {
     if (!pineconeIndex) {
       console.log("Initializing Pinecone client...");
       const pinecone = new Pinecone({
-        apiKey: PINECONE_API_KEY
+        apiKey: PINECONE_API_KEY,
+        environment: process.env.PINECONE_ENVIRONMENT || 'us-east-1' // 添加必需的environment参数
       });
       pineconeIndex = pinecone.index(PINECONE_INDEX_NAME);
       console.log("Pinecone client initialized.");
@@ -72,18 +84,18 @@ async function initPinecone() {
   }
 }
 
-// 获取嵌入向量
+// 使用硅基流动API获取嵌入向量
 async function getEmbedding(text) {
   try {
-    console.log("Getting embedding for text...");
+    console.log("Getting embedding for text using Silicon Flow API...");
 
     // 检查 API 密钥是否有效
     if (!SILICONE_API_KEY || SILICONE_API_KEY.trim() === '') {
-      console.error("Missing API key for embedding service");
-      throw new Error("API key for embedding service is not configured");
+      console.error("Missing API key for Silicon Flow embedding service");
+      throw new Error("Silicon Flow API key is not configured");
     }
 
-    console.log("API key status:", SILICONE_API_KEY ? "Key present" : "Key missing");
+    console.log("Silicon Flow API key status:", SILICONE_API_KEY ? "Key present" : "Key missing");
 
     // 尝试使用fetch API
     try {
@@ -101,7 +113,7 @@ async function getEmbedding(text) {
 
       // 添加超时控制
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 增加到60秒
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒超时
       options.signal = controller.signal;
 
       const response = await fetch('https://api.siliconflow.cn/v1/embeddings', options);
@@ -113,30 +125,24 @@ async function getEmbedding(text) {
       }
 
       const data = await response.json();
-      console.log("Successfully generated embedding with fetch API");
+      console.log("Successfully generated embedding with Silicon Flow API");
       return data.data[0].embedding;
     } catch (fetchError) {
       console.log("Fetch API failed, falling back to axios:", fetchError.message);
 
       // 备用：使用axios
-      // 在axios部分增加超时时间
       const response = await axios.post(
-        'https://api.siliconflow.cn/v1/chat/completions',
+        'https://api.siliconflow.cn/v1/embeddings',
         {
-          model: LLM_MODEL,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.6,
-          max_tokens: 1024
+          model: EMBEDDING_MODEL,
+          input: text
         },
         {
           headers: {
             'Authorization': `Bearer ${SILICONE_API_KEY}`,
             'Content-Type': 'application/json'
           },
-          timeout: 60000 // 增加到60秒
+          timeout: 60000 // 60秒超时
         }
       );
 
@@ -156,7 +162,7 @@ async function getEmbedding(text) {
   }
 }
 
-// 智能体评估是否需要RAG
+// 使用DeepSeek API评估是否需要RAG
 async function evaluateNeedForRAG(question, conversationHistory) {
   try {
     // 先进行快速评估
@@ -166,7 +172,13 @@ async function evaluateNeedForRAG(question, conversationHistory) {
       return quickResult;
     }
 
-    console.log("Evaluating if RAG is needed for the question...");
+    console.log("Evaluating if RAG is needed using DeepSeek Chat...");
+
+    // 检查 API 密钥是否有效
+    if (!DEEPSEEK_API_KEY || DEEPSEEK_API_KEY.trim() === '') {
+      console.error("Missing API key for DeepSeek service");
+      throw new Error("DeepSeek API key is not configured");
+    }
 
     // 构建提示以评估查询
     const prompt = `
@@ -186,80 +198,23 @@ async function evaluateNeedForRAG(question, conversationHistory) {
       只返回 "NEED_RAG" 或 "NO_RAG"，不要有其他文字。
      `;
 
-    console.log("Evaluating using fetch API...");
-
-    // 尝试两种API调用方法，以增加成功率
     try {
-      // 方法1: 使用fetch API
-      const options = {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SILICONE_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: LLM_MODEL2,
-          messages: [
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.3,
-          max_tokens: 90,
-          stream: false
-        })
-      };
+      // 使用DeepSeek Chat API评估
+      console.log("Using DeepSeek Chat API for evaluation...");
+      const completion = await openai.chat.completions.create({
+        model: DEEPSEEK_CHAT_MODEL,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+        max_tokens: 50
+      });
 
-      // 添加超时控制
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
-      options.signal = controller.signal;
-
-      const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', options);
-      clearTimeout(timeoutId); // 清除超时
-
-      console.log("Fetch response status:", response.status);
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const decision = data.choices[0].message.content.trim();
-      console.log(`RAG decision (fetch): ${decision}`);
+      const decision = completion.choices[0].message.content.trim();
+      console.log(`RAG decision (DeepSeek): ${decision}`);
 
       return decision.includes("NEED_RAG");
-    } catch (fetchError) {
-      console.error("Fetch error:", fetchError.name, fetchError.message);
-
-      try {
-        // 方法2: 备用 - 使用axios
-        console.log("Trying evaluation with axios as fallback");
-        const response = await axios.post(
-          'https://api.siliconflow.cn/v1/chat/completions',
-          {
-            model: LLM_MODEL2,
-            messages: [
-              { role: 'user', content: prompt }
-            ],
-            temperature: 0.3,
-            max_tokens: 10
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${SILICONE_API_KEY}`,
-              'Content-Type': 'application/json'
-            },
-            timeout: 8000 // 8秒超时
-          }
-        );
-
-        const decision = response.data.choices[0].message.content.trim();
-        console.log(`RAG decision (axios): ${decision}`);
-
-        return decision.includes("NEED_RAG");
-      } catch (axiosError) {
-        console.error("Both fetch and axios evaluation failed:", axiosError.message);
-        return true; // 默认使用RAG
-      }
+    } catch (error) {
+      console.error("DeepSeek API evaluation failed:", error.message);
+      return true; // 默认使用RAG
     }
   } catch (error) {
     console.error("Failed to evaluate need for RAG:", error);
@@ -408,11 +363,16 @@ async function retryOperation(operation, maxRetries = 3, delay = 1000) {
   throw lastError;
 }
 
-// 生成回答
-// 优化上下文和请求体大小以降低超时风险
+// 使用DeepSeek Reasoner生成回答
 async function generateAnswer(question, contexts, conversationHistory = []) {
   try {
-    console.log(`Generating answer for question: ${question.substring(0, 50)}...`);
+    console.log(`Generating answer for question using DeepSeek Reasoner: ${question.substring(0, 50)}...`);
+
+    // 检查 API 密钥是否有效
+    if (!DEEPSEEK_API_KEY || DEEPSEEK_API_KEY.trim() === '') {
+      console.error("Missing API key for DeepSeek service");
+      throw new Error("DeepSeek API key is not configured");
+    }
 
     // 1. 优化上下文 - 限制数量和长度
     let optimizedContexts = [];
@@ -457,9 +417,9 @@ async function generateAnswer(question, contexts, conversationHistory = []) {
       "";
 
     // 5. 构建提示 - 根据情况精简
-    let prompt;
+    let userPrompt;
     if (contextText) {
-      prompt = `### 博客文章内容:
+      userPrompt = `### 博客文章内容:
 ${contextText}
 
 ${historyText ? `### 最近对话:\n${historyText}\n\n` : ''}
@@ -469,7 +429,7 @@ ${question}
 
 请根据提供的内容简明扼要地回答问题。`;
     } else {
-      prompt = `${historyText ? `### 最近对话:\n${historyText}\n\n` : ''}
+      userPrompt = `${historyText ? `### 最近对话:\n${historyText}\n\n` : ''}
 
 ### 当前问题:
 ${question}
@@ -477,102 +437,39 @@ ${question}
 请简明扼要地回答问题。`;
     }
 
-    // 6. 记录请求体大小，帮助排查问题
-    const requestBody = JSON.stringify({
-      model: LLM_MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
-      ],
-      temperature: 0.6,
-      max_tokens: 1024
-    });
+    // 6. 构建消息数组
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ];
 
-    console.log(`Request body size: ${requestBody.length} characters`);
-    if (requestBody.length > 8000) {
-      console.warn("Warning: Request body is very large, may cause timeouts");
+    // 记录请求大小
+    const requestSize = JSON.stringify(messages).length;
+    console.log(`Request size: ${requestSize} characters`);
+    if (requestSize > 8000) {
+      console.warn("Warning: Request size is very large, may cause issues");
     }
 
-    // 7. 使用重试逻辑，增加超时时间
+    // 7. 使用重试逻辑调用DeepSeek Reasoner API
     try {
-      // 尝试使用 retryOperation 包装 axios 请求
-      const answer = await retryOperation(
-        async () => {
-          const response = await axios.post(
-            'https://api.siliconflow.cn/v1/chat/completions',
-            {
-              model: LLM_MODEL,
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: prompt }
-              ],
-              temperature: 0.6,
-              max_tokens: 1024
-            },
-            {
-              headers: {
-                'Authorization': `Bearer ${SILICONE_API_KEY}`,
-                'Content-Type': 'application/json'
-              },
-              timeout: 90000 // 增加到90秒
-            }
-          );
-
-          if (response.status !== 200) {
-            throw new Error(`Error generating answer: ${response.data}`);
-          }
-
-          const responseContent = response.data.choices[0].message.content;
-          console.log(`Answer generated successfully with axios.`);
-          return responseContent;
-        },
-        2, // 最多尝试2次
-        2000 // 初始延迟2秒
-      );
-
-      return answer;
-    } catch (axiosError) {
-      console.error("All axios attempts failed, trying fetch API...");
-
-      // 8. fetch API作为备用，也增加超时时间
-      const options = {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SILICONE_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: LLM_MODEL,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: prompt }
-          ],
+      const answer = await retryOperation(async () => {
+        console.log("Calling DeepSeek Reasoner API...");
+        const completion = await openai.chat.completions.create({
+          model: DEEPSEEK_REASONER_MODEL,
+          messages: messages,
           temperature: 0.6,
           max_tokens: 1024
-        })
-      };
+        });
 
-      // 增加超时控制
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90秒超时
-      options.signal = controller.signal;
-
-      try {
-        const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', options);
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          throw new Error(`Error generating answer: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const responseContent = data.choices[0].message.content;
-        console.log(`Answer generated successfully with fetch.`);
+        const responseContent = completion.choices[0].message.content;
+        console.log("Answer generated successfully with DeepSeek Reasoner");
         return responseContent;
-      } catch (fetchError) {
-        console.error("Failed to generate answer with fetch:", fetchError);
-        throw new Error("Failed to generate answer with both axios and fetch");
-      }
+      }, 2, 2000); // 最多2次重试，初始延迟2秒
+
+      return answer;
+    } catch (error) {
+      console.error("Failed to generate answer with DeepSeek Reasoner:", error);
+      throw new Error("Failed to generate answer with DeepSeek Reasoner");
     }
   } catch (error) {
     console.error("Failed to generate answer:", error);
@@ -590,21 +487,39 @@ ${question}
 }
 
 // 将对话存储到Pinecone
+// 改进的对话存储函数
 async function storeConversationInPinecone(question, answer, sessionId) {
   try {
     console.log("Storing conversation in Pinecone...");
 
-    // 生成对话的嵌入向量
-    const conversationText = `问题: ${question}\n回答: ${answer}`;
-    const embedding = await getEmbedding(conversationText);
+    // 如果未配置Pinecone API密钥，跳过存储
+    if (!PINECONE_API_KEY) {
+      console.log("Skipping conversation storage: Pinecone API key not configured");
+      return;
+    }
 
-    if (!embedding || embedding.length === 0) {
-      console.log("Skip storing conversation due to embedding failure");
+    // 生成对话的嵌入向量 (使用硅基流动API)
+    const conversationText = `问题: ${question}\n回答: ${answer}`;
+    let embedding;
+    try {
+      embedding = await getEmbedding(conversationText);
+      if (!embedding || embedding.length === 0) {
+        console.log("Skip storing conversation due to embedding failure");
+        return;
+      }
+    } catch (embeddingError) {
+      console.error("Failed to generate embedding for conversation:", embeddingError);
       return;
     }
 
     // 初始化Pinecone
-    const index = await initPinecone();
+    let index;
+    try {
+      index = await initPinecone();
+    } catch (pineconeError) {
+      console.error("Unable to initialize Pinecone:", pineconeError);
+      return;
+    }
 
     // 创建要存储的对象
     const timestamp = new Date().toISOString();
@@ -623,40 +538,38 @@ async function storeConversationInPinecone(question, answer, sessionId) {
       }
     };
 
-    // 尝试将向量上传到Pinecone，使用多种格式
+    // 使用正确的Pinecone upsert格式
+    console.log("Upserting vector to Pinecone...");
     try {
-      console.log("Trying to upsert with first method...");
-      // 第一种方法
-      await index.upsert([vectorData]);
+      // 修复的upsert方法 - 确保使用数组格式
+      const upsertResponse = await index.upsert({
+        vectors: [vectorData]
+      });
       console.log(`Conversation stored in Pinecone with ID: ${id}`);
+      console.log("Upsert response:", upsertResponse);
       return;
-    } catch (error1) {
-      console.log("First upsert method failed:", error1.message);
+    } catch (upsertError) {
+      console.error("Failed to upsert to Pinecone:", upsertError);
 
+      // 降级：尝试简化的upsert格式
       try {
-        console.log("Trying to upsert with second method...");
-        // 第二种方法
-        await index.upsert({
-          vectors: [vectorData]
-        });
-        console.log(`Conversation stored in Pinecone with ID (second method): ${id}`);
-        return;
-      } catch (error2) {
-        console.log("Second upsert method failed:", error2.message);
+        console.log("Trying simplified upsert format...");
+        // 简化格式，只保留必要的字段
+        const simplifiedVector = {
+          id: id,
+          values: embedding,
+          metadata: {
+            content: conversationText.substring(0, 1000), // 裁剪内容长度
+            type: 'conversation'
+          }
+        };
 
-        try {
-          console.log("Trying to upsert with third method...");
-          // 第三种方法
-          await index.upsert({
-            upsertRequest: {
-              vectors: [vectorData]
-            }
-          });
-          console.log(`Conversation stored in Pinecone with ID (third method): ${id}`);
-        } catch (error3) {
-          console.error("All upsert methods failed:", error3.message);
-          // 继续执行，不要因为存储失败阻止主要功能
-        }
+        await index.upsert({
+          vectors: [simplifiedVector]
+        });
+        console.log(`Conversation stored in Pinecone with simplified format, ID: ${id}`);
+      } catch (fallbackError) {
+        console.error("All Pinecone upsert attempts failed:", fallbackError);
       }
     }
   } catch (error) {
@@ -737,7 +650,7 @@ async function processRagRequest(requestId, sessionId, question) {
       return answer;
     }
 
-    // 使用智能体评估是否需要RAG
+    // 使用DeepSeek Chat评估是否需要RAG
     const needsRAG = await evaluateNeedForRAG(question, conversationHistory);
 
     let contexts = [];
@@ -749,7 +662,7 @@ async function processRagRequest(requestId, sessionId, question) {
       if (needsRAG) {
         console.log("RAG is needed for this question");
 
-        // 获取问题的嵌入向量
+        // 获取问题的嵌入向量 (使用硅基流动API)
         try {
           queryEmbedding = await getEmbedding(question);
           console.log("Embedding obtained, length:", queryEmbedding?.length || 0);
@@ -772,7 +685,7 @@ async function processRagRequest(requestId, sessionId, question) {
         console.log("Skipping RAG based on question evaluation");
       }
 
-      // 生成回答
+      // 使用DeepSeek Reasoner生成回答
       answer = await generateAnswer(
         question,
         contexts,
@@ -825,6 +738,12 @@ async function warmupConnections() {
     await Promise.allSettled([
       initPinecone().catch(err => console.log("Pinecone warmup completed with error:", err.message)),
       getEmbedding("warmup query").catch(err => console.log("Embedding API warmup completed with error:", err.message)),
+      // 检查DeepSeek API连接
+      openai.chat.completions.create({
+        model: DEEPSEEK_CHAT_MODEL,
+        messages: [{ role: 'user', content: 'Hello' }],
+        max_tokens: 5
+      }).catch(err => console.log("DeepSeek API warmup completed with error:", err.message))
     ]);
     console.log("API connections pre-warmed");
     return true;

@@ -13,10 +13,10 @@
   directory = "netlify/functions"
 
 [functions.rag]
-  timeout = 30
+  timeout = 60
 
 [functions.status]
-  timeout = 10
+  timeout = 30
 
 [[redirects]]
   from = "/functions/*"
@@ -24,7 +24,6 @@
   status = 200
   force = true
 
-# 这是重要的一步 - 确保 _site 目录中的文件被正确提供
 [[redirects]]
   from = "/*"
   to = "/index.html"

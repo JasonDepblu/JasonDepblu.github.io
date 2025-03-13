@@ -76,27 +76,47 @@ async function initPinecone() {
 async function getEmbedding(text) {
   try {
     console.log("Getting embedding for text...");
-    const response = await axios.post(
-      'https://api.siliconflow.cn/v1/embeddings',
-      {
-        model: EMBEDDING_MODEL,
-        input: text
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${SILICONE_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
 
-    if (response.status !== 200) {
-      throw new Error(`Error getting embedding: ${response.data}`);
+    // 检查 API 密钥是否有效
+    if (!SILICONE_API_KEY || SILICONE_API_KEY.trim() === '') {
+      console.error("Missing API key for embedding service");
+      throw new Error("API key for embedding service is not configured");
     }
 
-    return response.data.data[0].embedding;
+    console.log("API key status:", SILICONE_API_KEY ? "Key present" : "Key missing");
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SILICONE_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: EMBEDDING_MODEL,
+        input: text
+      })
+    };
+
+    // 添加超时控制
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+    options.signal = controller.signal;
+
+    const response = await fetch('https://api.siliconflow.cn/v1/embeddings', options);
+    clearTimeout(timeoutId); // 清除超时
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error getting embedding: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data.data[0].embedding;
   } catch (error) {
     console.error("Failed to get embedding:", error);
+    if (error.name === 'AbortError') {
+      console.log("Embedding request timed out");
+    }
     throw error;
   }
 }
@@ -112,13 +132,6 @@ async function evaluateNeedForRAG(question, conversationHistory) {
     }
 
     console.log("Evaluating if RAG is needed for the question...");
-
-    // 添加超时机制
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error("API request timed out after 5 seconds"));
-      }, 5000); // 5秒超时
-    });
 
     // 构建提示以评估查询
     const prompt = `
@@ -137,44 +150,56 @@ async function evaluateNeedForRAG(question, conversationHistory) {
       如果问题是闲聊、打招呼、感谢或简单的后续问题（基于之前对话可以回答），请回答 "NO_RAG"。
       只返回 "NEED_RAG" 或 "NO_RAG"，不要有其他文字。
      `;
-    console.log("Prepared LLM query with prompt length:", prompt.length);
+
+    console.log("Evaluating using fetch API...");
+
+    // 使用 fetch 替代 axios
+    const options = {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SILICONE_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: LLM_MODEL,
+        messages: [
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.3,
+        max_tokens: 10,
+        stream: false
+      })
+    };
+
+    // 添加超时控制
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
+    options.signal = controller.signal;
 
     try {
-      // 调用 LLM 进行评估，带超时
-      const apiPromise = axios.post(
-        'https://api.siliconflow.cn/v1/chat/completions',
-        {
-          model: LLM_MODEL,
-          messages: [
-            { role: 'user', content: prompt }
-          ],
-          temperature: 0.3,
-          max_tokens: 10
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${SILICONE_API_KEY}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', options);
+      clearTimeout(timeoutId); // 清除超时
 
-      // 竞争两个 Promise，谁先完成就用谁的结果
-      const response = await Promise.race([apiPromise, timeoutPromise]);
+      console.log("Fetch response status:", response.status);
 
-      console.log("API request completed successfully");
-
-      if (response.status !== 200) {
-        throw new Error(`Error in RAG evaluation: ${response.data}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API error: ${response.status} - ${errorText}`);
       }
 
-      const decision = response.data.choices[0].message.content.trim();
+      const data = await response.json();
+      console.log("Fetch response received");
+
+      const decision = data.choices[0].message.content.trim();
       console.log(`RAG decision: ${decision}`);
 
       return decision.includes("NEED_RAG");
-    } catch (apiError) {
-      console.error("API request failed:", apiError.message);
-      // 如果是超时或API错误，默认需要RAG
+    } catch (fetchError) {
+      console.error("Fetch error:", fetchError.name, fetchError.message);
+      if (fetchError.name === 'AbortError') {
+        console.log("Fetch request timed out");
+      }
+      // 默认使用RAG
       return true;
     }
   } catch (error) {

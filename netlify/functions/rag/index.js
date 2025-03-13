@@ -11,7 +11,7 @@ const PINECONE_INDEX_NAME = process.env.PINECONE_INDEX_NAME || 'blog-content';
 const SILICONE_API_KEY = process.env.SILICONE_API_KEY || process.env.DEEPSEEK_API_KEY; // 兼容两种变量命名
 const EMBEDDING_MODEL = 'Pro/BAAI/bge-m3';
 const LLM_MODEL = 'Pro/deepseek-ai/DeepSeek-R1';
-const LLM_MODEL2 = 'Qwen/Qwen2.5-32B-Instruct';
+const LLM_MODEL2 = 'Qwen/Qwen2.5-14B-Instruct';
 
 // 初始化 Pinecone 客户端
 let pineconeIndex = null;
@@ -161,7 +161,7 @@ async function evaluateNeedForRAG(question, conversationHistory) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: LLM_MODEL,
+        model: LLM_MODEL2,
         messages: [
           { role: 'user', content: prompt }
         ],

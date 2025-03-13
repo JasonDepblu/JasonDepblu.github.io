@@ -113,6 +113,13 @@ async function evaluateNeedForRAG(question, conversationHistory) {
 
     console.log("Evaluating if RAG is needed for the question...");
 
+    // 添加超时机制
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("API request timed out after 5 seconds"));
+      }, 5000); // 5秒超时
+    });
+
     // 构建提示以评估查询
     const prompt = `
       你是一个决策智能体，负责确定是否需要外部知识来回答用户的问题。
@@ -130,37 +137,46 @@ async function evaluateNeedForRAG(question, conversationHistory) {
       如果问题是闲聊、打招呼、感谢或简单的后续问题（基于之前对话可以回答），请回答 "NO_RAG"。
       只返回 "NEED_RAG" 或 "NO_RAG"，不要有其他文字。
      `;
-    console.log("Evaluating if RAG is needed for the question 2...");
+    console.log("Prepared LLM query with prompt length:", prompt.length);
 
-    // 调用 LLM 进行评估
-    const response = await axios.post(
-      'https://api.siliconflow.cn/v1/chat/completions',
-      {
-        model: LLM_MODEL,
-        messages: [
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.3,
-        max_tokens: 10
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${SILICONE_API_KEY}`,
-          'Content-Type': 'application/json'
+    try {
+      // 调用 LLM 进行评估，带超时
+      const apiPromise = axios.post(
+        'https://api.siliconflow.cn/v1/chat/completions',
+        {
+          model: LLM_MODEL,
+          messages: [
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 10
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${SILICONE_API_KEY}`,
+            'Content-Type': 'application/json'
+          }
         }
+      );
+
+      // 竞争两个 Promise，谁先完成就用谁的结果
+      const response = await Promise.race([apiPromise, timeoutPromise]);
+
+      console.log("API request completed successfully");
+
+      if (response.status !== 200) {
+        throw new Error(`Error in RAG evaluation: ${response.data}`);
       }
-    );
 
-    console.log("Evaluating if RAG is needed for the question 3...");
+      const decision = response.data.choices[0].message.content.trim();
+      console.log(`RAG decision: ${decision}`);
 
-    if (response.status !== 200) {
-      throw new Error(`Error in RAG evaluation: ${response.data}`);
+      return decision.includes("NEED_RAG");
+    } catch (apiError) {
+      console.error("API request failed:", apiError.message);
+      // 如果是超时或API错误，默认需要RAG
+      return true;
     }
-
-    const decision = response.data.choices[0].message.content.trim();
-    console.log(`RAG decision: ${decision}`);
-
-    return decision.includes("NEED_RAG");
   } catch (error) {
     console.error("Failed to evaluate need for RAG:", error);
     // 默认使用RAG

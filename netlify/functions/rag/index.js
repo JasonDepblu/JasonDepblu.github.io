@@ -85,33 +85,68 @@ async function getEmbedding(text) {
 
     console.log("API key status:", SILICONE_API_KEY ? "Key present" : "Key missing");
 
-    const options = {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SILICONE_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: EMBEDDING_MODEL,
-        input: text
-      })
-    };
+    // 尝试使用fetch API
+    try {
+      const options = {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SILICONE_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: EMBEDDING_MODEL,
+          input: text
+        })
+      };
 
-    // 添加超时控制
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
-    options.signal = controller.signal;
+      // 添加超时控制
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 增加到60秒
+      options.signal = controller.signal;
 
-    const response = await fetch('https://api.siliconflow.cn/v1/embeddings', options);
-    clearTimeout(timeoutId); // 清除超时
+      const response = await fetch('https://api.siliconflow.cn/v1/embeddings', options);
+      clearTimeout(timeoutId); // 清除超时
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error getting embedding: ${response.status} - ${errorText}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error getting embedding: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("Successfully generated embedding with fetch API");
+      return data.data[0].embedding;
+    } catch (fetchError) {
+      console.log("Fetch API failed, falling back to axios:", fetchError.message);
+
+      // 备用：使用axios
+      // 在axios部分增加超时时间
+      const response = await axios.post(
+        'https://api.siliconflow.cn/v1/chat/completions',
+        {
+          model: LLM_MODEL,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.6,
+          max_tokens: 1024
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${SILICONE_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 60000 // 增加到60秒
+        }
+      );
+
+      if (response.status !== 200) {
+        throw new Error(`Error getting embedding: ${response.data}`);
+      }
+
+      console.log("Successfully generated embedding with axios");
+      return response.data.data[0].embedding;
     }
-
-    const data = await response.json();
-    return data.data[0].embedding;
   } catch (error) {
     console.error("Failed to get embedding:", error);
     if (error.name === 'AbortError') {
@@ -153,54 +188,78 @@ async function evaluateNeedForRAG(question, conversationHistory) {
 
     console.log("Evaluating using fetch API...");
 
-    // 使用 fetch 替代 axios
-    const options = {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SILICONE_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: LLM_MODEL2,
-        messages: [
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.3,
-        max_tokens: 10,
-        stream: false
-      })
-    };
-
-    // 添加超时控制
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
-    options.signal = controller.signal;
-
+    // 尝试两种API调用方法，以增加成功率
     try {
+      // 方法1: 使用fetch API
+      const options = {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SILICONE_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: LLM_MODEL2,
+          messages: [
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.3,
+          max_tokens: 10,
+          stream: false
+        })
+      };
+
+      // 添加超时控制
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8秒超时
+      options.signal = controller.signal;
+
       const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', options);
       clearTimeout(timeoutId); // 清除超时
 
       console.log("Fetch response status:", response.status);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API error: ${response.status} - ${errorText}`);
+        throw new Error(`API error: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("Fetch response received");
-
       const decision = data.choices[0].message.content.trim();
-      console.log(`RAG decision: ${decision}`);
+      console.log(`RAG decision (fetch): ${decision}`);
 
       return decision.includes("NEED_RAG");
     } catch (fetchError) {
       console.error("Fetch error:", fetchError.name, fetchError.message);
-      if (fetchError.name === 'AbortError') {
-        console.log("Fetch request timed out");
+
+      try {
+        // 方法2: 备用 - 使用axios
+        console.log("Trying evaluation with axios as fallback");
+        const response = await axios.post(
+          'https://api.siliconflow.cn/v1/chat/completions',
+          {
+            model: LLM_MODEL2,
+            messages: [
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.3,
+            max_tokens: 10
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${SILICONE_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 8000 // 8秒超时
+          }
+        );
+
+        const decision = response.data.choices[0].message.content.trim();
+        console.log(`RAG decision (axios): ${decision}`);
+
+        return decision.includes("NEED_RAG");
+      } catch (axiosError) {
+        console.error("Both fetch and axios evaluation failed:", axiosError.message);
+        return true; // 默认使用RAG
       }
-      // 默认使用RAG
-      return true;
     }
   } catch (error) {
     console.error("Failed to evaluate need for RAG:", error);
@@ -223,9 +282,10 @@ async function retrieveContext(queryEmbedding, topK = 5) {
     // 初始化Pinecone客户端
     const index = await initPinecone();
 
-    // 向Pinecone查询 - 修复查询格式
+    // 向Pinecone查询 - 尝试多种方法
     try {
       // 尝试新版本API格式
+      console.log("Trying Pinecone query with new API format");
       const queryResponse = await index.query({
         namespace: "",
         topK: topK,
@@ -250,34 +310,71 @@ async function retrieveContext(queryEmbedding, topK = 5) {
       }));
 
       return contexts;
-    } catch (error) {
-      // 如果新版本API格式失败，尝试旧版本格式
+    } catch (newApiError) {
+      console.log("New API format failed:", newApiError.message);
       console.log("Trying alternative Pinecone query format...");
-      const altQueryResponse = await index.query({
-        queries: [{
-          values: queryEmbedding,
-          topK: topK,
-          includeMetadata: true
-        }]
-      });
 
-      const matches = altQueryResponse.results?.[0]?.matches || [];
-      if (matches.length === 0) {
-        console.log("No matching documents found in Pinecone (alt method)");
-        return [];
+      try {
+        // 尝试旧版本格式
+        const altQueryResponse = await index.query({
+          queries: [{
+            values: queryEmbedding,
+            topK: topK,
+            includeMetadata: true
+          }]
+        });
+
+        const matches = altQueryResponse.results?.[0]?.matches || [];
+        if (matches.length === 0) {
+          console.log("No matching documents found in Pinecone (alt method)");
+          return [];
+        }
+
+        console.log(`Found ${matches.length} matches in Pinecone (alt method)`);
+
+        // 转换匹配结果为上下文格式
+        const contexts = matches.map(match => ({
+          content: match.metadata?.content || '',
+          url: match.metadata?.url || '',
+          title: match.metadata?.title || '',
+          score: match.score || 0
+        }));
+
+        return contexts;
+      } catch (oldApiError) {
+        console.log("Alternative query format also failed:", oldApiError.message);
+        console.log("Trying third query format...");
+
+        try {
+          // 尝试第三种格式
+          const thirdQueryResponse = await index.query({
+            vector: queryEmbedding,
+            topK: topK,
+            includeMetadata: true
+          });
+
+          const thirdMatches = thirdQueryResponse.matches || [];
+          if (thirdMatches.length === 0) {
+            console.log("No matching documents found in Pinecone (third method)");
+            return [];
+          }
+
+          console.log(`Found ${thirdMatches.length} matches in Pinecone (third method)`);
+
+          // 转换匹配结果为上下文格式
+          const contexts = thirdMatches.map(match => ({
+            content: match.metadata?.content || '',
+            url: match.metadata?.url || '',
+            title: match.metadata?.title || '',
+            score: match.score || 0
+          }));
+
+          return contexts;
+        } catch (thirdApiError) {
+          console.error("All Pinecone query formats failed");
+          return []; // 返回空数组，不中断流程
+        }
       }
-
-      console.log(`Found ${matches.length} matches in Pinecone (alt method)`);
-
-      // 转换匹配结果为上下文格式
-      const contexts = matches.map(match => ({
-        content: match.metadata?.content || '',
-        url: match.metadata?.url || '',
-        title: match.metadata?.title || '',
-        score: match.score || 0
-      }));
-
-      return contexts;
     }
   } catch (error) {
     console.error("Failed to retrieve context from Pinecone:", error);
@@ -286,20 +383,67 @@ async function retrieveContext(queryEmbedding, topK = 5) {
   }
 }
 
+// 添加通用重试函数
+async function retryOperation(operation, maxRetries = 3, delay = 1000) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`Attempt ${attempt}/${maxRetries}...`);
+      return await operation();
+    } catch (error) {
+      console.error(`Attempt ${attempt} failed:`, error.message);
+      lastError = error;
+
+      // 最后一次尝试失败就不再等待
+      if (attempt < maxRetries) {
+        console.log(`Waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        // 增加延迟时间，退避策略
+        delay = delay * 1.5;
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 // 生成回答
+// 优化上下文和请求体大小以降低超时风险
 async function generateAnswer(question, contexts, conversationHistory = []) {
   try {
     console.log(`Generating answer for question: ${question.substring(0, 50)}...`);
 
-    // 根据上下文是否为空调整系统提示
+    // 1. 优化上下文 - 限制数量和长度
+    let optimizedContexts = [];
+    if (contexts && contexts.length > 0) {
+      // 仅取前3个最相关上下文
+      optimizedContexts = contexts.slice(0, 3).map(ctx => ({
+        title: ctx.title,
+        url: ctx.url,
+        // 限制每个上下文内容长度为600字符
+        content: ctx.content?.length > 600 ? ctx.content.substring(0, 600) + "..." : ctx.content || ""
+      }));
+    }
+
+    // 2. 优化对话历史 - 仅保留最近3轮对话且限制长度
+    const recentHistory = conversationHistory.slice(-3).map(item => ({
+      user: item.user,
+      // 限制每个回复长度为200字符
+      assistant: item.assistant?.length > 200 ?
+        item.assistant.substring(0, 200) + "..." :
+        item.assistant || ""
+    }));
+
+    // 3. 构建系统提示
     let systemPrompt;
     let contextText = "";
 
-    if (contexts && contexts.length > 0) {
+    if (optimizedContexts.length > 0) {
       systemPrompt = `你是一个博客助手，根据提供的博客文章内容回答用户问题。如果提供的上下文中没有答案，请说明并给出你的最佳回答。
-回答中应包含相关链接（如果有），并使用Markdown格式。保持回答简洁明了，直接针对用户问题。`;
+回答中应包含相关链接（如果有），保持回答简洁明了，直接针对用户问题。使用Markdown格式。`;
 
-      contextText = contexts.map(ctx =>
+      contextText = optimizedContexts.map(ctx =>
         `标题: ${ctx.title}\n链接: ${ctx.url}\n内容: ${ctx.content}`
       ).join('\n\n');
     } else {
@@ -307,65 +451,141 @@ async function generateAnswer(question, contexts, conversationHistory = []) {
 使用Markdown格式，保持回答简洁明了，直接针对用户问题。`;
     }
 
-    // 格式化对话历史
-    const historyText = conversationHistory.map(item =>
-      `用户: ${item.user}\n助手: ${item.assistant}`
-    ).join('\n\n');
+    // 4. 格式化对话历史 - 精简
+    const historyText = recentHistory.length > 0 ?
+      recentHistory.map(item => `用户: ${item.user}\n助手: ${item.assistant}`).join('\n\n') :
+      "";
 
-    // 构建提示
+    // 5. 构建提示 - 根据情况精简
     let prompt;
     if (contextText) {
       prompt = `### 博客文章内容:
 ${contextText}
 
-### 对话历史:
-${historyText}
+${historyText ? `### 最近对话:\n${historyText}\n\n` : ''}
 
 ### 当前问题:
 ${question}
 
-请根据提供的博客内容回答问题。`;
+请根据提供的内容简明扼要地回答问题。`;
     } else {
-      prompt = `### 对话历史:
-${historyText}
+      prompt = `${historyText ? `### 最近对话:\n${historyText}\n\n` : ''}
 
 ### 当前问题:
 ${question}
 
-请回答问题。`;
+请简明扼要地回答问题。`;
     }
 
-    // 调用 Silicone Flow API
-    const response = await axios.post(
-      'https://api.siliconflow.cn/v1/chat/completions',
-      {
-        model: LLM_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.6,
-        max_tokens: 1024
-      },
-      {
+    // 6. 记录请求体大小，帮助排查问题
+    const requestBody = JSON.stringify({
+      model: LLM_MODEL,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.6,
+      max_tokens: 1024
+    });
+
+    console.log(`Request body size: ${requestBody.length} characters`);
+    if (requestBody.length > 8000) {
+      console.warn("Warning: Request body is very large, may cause timeouts");
+    }
+
+    // 7. 使用重试逻辑，增加超时时间
+    try {
+      // 尝试使用 retryOperation 包装 axios 请求
+      const answer = await retryOperation(
+        async () => {
+          const response = await axios.post(
+            'https://api.siliconflow.cn/v1/chat/completions',
+            {
+              model: LLM_MODEL,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: prompt }
+              ],
+              temperature: 0.6,
+              max_tokens: 1024
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${SILICONE_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              timeout: 90000 // 增加到90秒
+            }
+          );
+
+          if (response.status !== 200) {
+            throw new Error(`Error generating answer: ${response.data}`);
+          }
+
+          const responseContent = response.data.choices[0].message.content;
+          console.log(`Answer generated successfully with axios.`);
+          return responseContent;
+        },
+        2, // 最多尝试2次
+        2000 // 初始延迟2秒
+      );
+
+      return answer;
+    } catch (axiosError) {
+      console.error("All axios attempts failed, trying fetch API...");
+
+      // 8. fetch API作为备用，也增加超时时间
+      const options = {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${SILICONE_API_KEY}`,
           'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: LLM_MODEL,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.6,
+          max_tokens: 1024
+        })
+      };
+
+      // 增加超时控制
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000); // 90秒超时
+      options.signal = controller.signal;
+
+      try {
+        const response = await fetch('https://api.siliconflow.cn/v1/chat/completions', options);
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(`Error generating answer: ${response.status}`);
         }
+
+        const data = await response.json();
+        const responseContent = data.choices[0].message.content;
+        console.log(`Answer generated successfully with fetch.`);
+        return responseContent;
+      } catch (fetchError) {
+        console.error("Failed to generate answer with fetch:", fetchError);
+        throw new Error("Failed to generate answer with both axios and fetch");
       }
-    );
-
-    if (response.status !== 200) {
-      throw new Error(`Error generating answer: ${response.data}`);
     }
-
-    const responseContent = response.data.choices[0].message.content;
-    console.log(`Answer generated successfully.`);
-
-    return responseContent;
   } catch (error) {
     console.error("Failed to generate answer:", error);
-    throw error;
+
+    // 9. 改进降级回复，根据问题类型提供更有帮助的回复
+    if (question.toLowerCase().includes("什么是")) {
+      const keyword = question.replace(/什么是|？|\?/g, '').trim();
+      return `对不起，我目前无法生成详细回答。您询问的"${keyword}"是一个重要概念，我建议您查阅博客上的相关文章或稍后再试。
+
+如果您想了解更多关于"${keyword}"的信息，可以尝试更具体的问题，例如"${keyword}的应用场景有哪些？"或"${keyword}与其他技术有什么区别？"`;
+    } else {
+      return `很抱歉，我无法处理您的请求"${question}"。这可能是由于服务器繁忙或连接问题。请稍后再试，或尝试提出更简短、更具体的问题。`;
+    }
   }
 }
 
@@ -403,21 +623,40 @@ async function storeConversationInPinecone(question, answer, sessionId) {
       }
     };
 
-    // 尝试将向量上传到Pinecone
+    // 尝试将向量上传到Pinecone，使用多种格式
     try {
-      // 使用正确的API格式
+      console.log("Trying to upsert with first method...");
+      // 第一种方法
       await index.upsert([vectorData]);
       console.log(`Conversation stored in Pinecone with ID: ${id}`);
-    } catch (error) {
-      // 如果第一种方法失败，尝试替代方法
+      return;
+    } catch (error1) {
+      console.log("First upsert method failed:", error1.message);
+
       try {
+        console.log("Trying to upsert with second method...");
+        // 第二种方法
         await index.upsert({
           vectors: [vectorData]
         });
-        console.log(`Conversation stored in Pinecone with ID (alt method): ${id}`);
-      } catch (altError) {
-        console.error("Failed to store conversation in Pinecone:", altError);
-        // 继续执行，不要因为存储失败阻止主要功能
+        console.log(`Conversation stored in Pinecone with ID (second method): ${id}`);
+        return;
+      } catch (error2) {
+        console.log("Second upsert method failed:", error2.message);
+
+        try {
+          console.log("Trying to upsert with third method...");
+          // 第三种方法
+          await index.upsert({
+            upsertRequest: {
+              vectors: [vectorData]
+            }
+          });
+          console.log(`Conversation stored in Pinecone with ID (third method): ${id}`);
+        } catch (error3) {
+          console.error("All upsert methods failed:", error3.message);
+          // 继续执行，不要因为存储失败阻止主要功能
+        }
       }
     }
   } catch (error) {
@@ -428,27 +667,45 @@ async function storeConversationInPinecone(question, answer, sessionId) {
 
 // 更新会话和请求状态的辅助函数
 function updateSessionWithAnswer(sessionId, requestId, question, answer) {
-  // 获取会话历史
-  const session = sessionStore.getSession(sessionId) || {};
-  const conversationHistory = session.history || [];
+  try {
+    console.log(`Updating session ${sessionId} with answer for request ${requestId}`);
 
-  // 更新会话历史
-  const updatedHistory = [...conversationHistory, {
-    user: question,
-    assistant: answer
-  }];
+    // 获取会话历史
+    const session = sessionStore.getSession(sessionId) || {};
+    const conversationHistory = session.history || [];
 
-  sessionStore.updateSession(sessionId, 'history', updatedHistory);
+    // 更新会话历史
+    const updatedHistory = [...conversationHistory, {
+      user: question,
+      assistant: answer
+    }];
 
-  // 更新请求状态
-  sessionStore.updateSession(sessionId, 'current_request', {
-    id: requestId,
-    status: 'completed',
-    answer: answer,
-    completed_at: Date.now()
-  });
+    sessionStore.updateSession(sessionId, 'history', updatedHistory);
 
-  console.log(`Session updated for request ${requestId}`);
+    // 更新请求状态
+    sessionStore.updateSession(sessionId, 'current_request', {
+      id: requestId,
+      status: 'completed',
+      answer: answer,
+      completed_at: Date.now()
+    });
+
+    console.log(`Session updated for request ${requestId}`);
+  } catch (error) {
+    console.error("Failed to update session:", error);
+    // 尝试简化更新操作
+    try {
+      sessionStore.updateSession(sessionId, 'current_request', {
+        id: requestId,
+        status: 'completed',
+        answer: answer,
+        completed_at: Date.now()
+      });
+      console.log("Updated request status only");
+    } catch (fallbackError) {
+      console.error("Failed to update session even with fallback approach:", fallbackError);
+    }
+  }
 }
 
 // 处理 RAG 请求
@@ -470,10 +727,12 @@ async function processRagRequest(requestId, sessionId, question) {
       updateSessionWithAnswer(sessionId, requestId, question, answer);
 
       // 异步存储对话到Pinecone（不等待完成）
-      setTimeout(() => {
+      try {
         storeConversationInPinecone(question, answer, sessionId)
           .catch(error => console.error("Background conversation storage failed:", error));
-      }, 10);
+      } catch (error) {
+        console.error("Failed to initiate conversation storage:", error);
+      }
 
       return answer;
     }
@@ -486,7 +745,10 @@ async function processRagRequest(requestId, sessionId, question) {
     let queryEmbedding = null;
 
     try {
+      // 如果需要RAG过程
       if (needsRAG) {
+        console.log("RAG is needed for this question");
+
         // 获取问题的嵌入向量
         try {
           queryEmbedding = await getEmbedding(question);
@@ -517,8 +779,8 @@ async function processRagRequest(requestId, sessionId, question) {
         conversationHistory
       );
       console.log("Answer generated.");
-    } catch (error) {
-      console.error("Error during RAG process:", error);
+    } catch (processingError) {
+      console.error("Error during RAG process:", processingError);
       // 生成一个错误解释的回答
       answer = `对不起，在处理您的问题时遇到了技术困难。请稍后再试或重新表述您的问题。`;
     }
@@ -528,9 +790,8 @@ async function processRagRequest(requestId, sessionId, question) {
 
     // 异步存储对话到Pinecone（不等待完成）
     try {
-      storeConversationInPinecone(question, answer, sessionId).catch(error => {
-        console.error("Background conversation storage failed:", error);
-      });
+      storeConversationInPinecone(question, answer, sessionId)
+        .catch(error => console.error("Background conversation storage failed:", error));
     } catch (storageError) {
       console.error("Error initiating conversation storage:", storageError);
     }
@@ -561,59 +822,30 @@ async function processRagRequest(requestId, sessionId, question) {
 async function warmupConnections() {
   try {
     console.log("Pre-warming API connections...");
-    await Promise.all([
-      initPinecone(),
-      getEmbedding("warmup query").catch(() => console.log("Embedding API warmup completed with error (continuing)")),
+    await Promise.allSettled([
+      initPinecone().catch(err => console.log("Pinecone warmup completed with error:", err.message)),
+      getEmbedding("warmup query").catch(err => console.log("Embedding API warmup completed with error:", err.message)),
     ]);
     console.log("API connections pre-warmed");
+    return true;
   } catch (error) {
     console.error("Connection warmup failed (continuing):", error);
+    return false;
   }
 }
 
-// 响应队列管理
-class ResponseQueue {
-  constructor() {
-    this.greetingQueue = [];  // 优先队列
-    this.complexQueue = [];   // 复杂查询队列
-    this.processing = false;
-  }
-
-  addQuery(requestId, sessionId, question, isGreeting) {
-    const queue = isGreeting ? this.greetingQueue : this.complexQueue;
-    queue.push({ requestId, sessionId, question });
-    this.processNext();
-  }
-
-  async processNext() {
-    if (this.processing) return;
-
-    this.processing = true;
-    try {
-      // 优先处理问候
-      const nextItem = this.greetingQueue.shift() || this.complexQueue.shift();
-      if (nextItem) {
-        await processRagRequest(nextItem.requestId, nextItem.sessionId, nextItem.question);
-      }
-    } finally {
-      this.processing = false;
-      if (this.greetingQueue.length || this.complexQueue.length) {
-        setImmediate(() => this.processNext());
-      }
-    }
-  }
-}
-
-const responseQueue = new ResponseQueue();
-
-// 主处理函数
+// 在主处理函数中添加即时响应功能
 exports.handler = async (event, context) => {
   try {
     console.log("RAG function called");
 
+    // 解析请求体
     const body = JSON.parse(event.body || '{}');
     const question = body.question || '';
     let sessionId = body.sessionId;
+
+    // 新增: 检查是否是简单问题标志
+    const preferFastResponse = body.preferFastResponse === true;
 
     console.log(`Question received: ${question}`);
 
@@ -629,7 +861,7 @@ exports.handler = async (event, context) => {
       console.log(`Using existing session: ${sessionId}`);
     }
 
-    // 生成请求ID - 移到这里，确保在所有分支都能访问
+    // 生成请求ID
     const requestId = crypto.randomUUID();
 
     // 检查是否是简单问候（快速路径）
@@ -639,6 +871,12 @@ exports.handler = async (event, context) => {
 
       // 更新会话和请求状态
       updateSessionWithAnswer(sessionId, requestId, question, answer);
+
+      // 异步存储对话（不阻塞响应）
+      setTimeout(() => {
+        storeConversationInPinecone(question, answer, sessionId)
+          .catch(error => console.error("Background conversation storage failed:", error));
+      }, 10);
 
       return {
         statusCode: 200,
@@ -653,7 +891,53 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // 对于复杂查询，使用异步处理模式
+    // 新增: 问题长度和复杂度分析
+    const isSimpleQuestion = question.length < 50 && !question.includes("如何") &&
+                            !question.includes("为什么") && !question.includes("比较");
+
+    // 检查是否可以快速响应
+    if (preferFastResponse || isSimpleQuestion) {
+      // 提供一个通用但相关的快速响应
+      let fastResponse;
+
+      // 获取会话历史用于确定上下文
+      const session = sessionStore.getSession(sessionId) || {};
+      const conversationHistory = session.history || [];
+
+      if (question.toLowerCase().includes("什么是")) {
+        const keyword = question.replace(/什么是|？|\?/g, '').trim();
+        fastResponse = `正在查询关于"${keyword}"的信息，请稍候...
+
+我会尽快提供关于"${keyword}"的详细解释。您可以稍等片刻，或刷新页面查看完整回答。`;
+      } else {
+        fastResponse = `我正在处理您的问题"${question}"，请稍候...
+
+我会尽快提供详细回答。您可以继续浏览其他内容，稍后回来查看完整回答。`;
+      }
+
+      // 启动异步处理，不等待完成
+      processRagRequest(requestId, sessionId, question).catch(error => {
+        console.error(`Background processing failed for request ${requestId}:`, error);
+      });
+
+      // 返回快速响应
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          requestId: requestId,
+          sessionId: sessionId,
+          quickResponse: fastResponse,
+          message: "Full answer is being processed",
+          status: "processing"
+        })
+      };
+    }
+
+    // 对于非问候查询，使用正常的处理流程
     sessionStore.updateSession(sessionId, 'current_request', {
       id: requestId,
       question: question,
@@ -663,11 +947,12 @@ exports.handler = async (event, context) => {
 
     console.log(`Created request ${requestId} in session ${sessionId}`);
 
-    // 异步处理请求
+    // 启动处理但不等待完成 (异步模式)
     processRagRequest(requestId, sessionId, question).catch(error => {
       console.error(`Background processing failed for request ${requestId}:`, error);
     });
 
+    // 返回请求ID用于客户端轮询
     return {
       statusCode: 200,
       headers: {
@@ -677,7 +962,8 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         requestId: requestId,
         sessionId: sessionId,
-        message: "Request is being processed"
+        message: "Request is being processed",
+        status: "processing"
       })
     };
   } catch (error) {
@@ -697,8 +983,8 @@ exports.handler = async (event, context) => {
 exports.init = async () => {
   try {
     // 预热连接
-    await warmupConnections();
-    return { success: true };
+    const warmupSuccess = await warmupConnections();
+    return { success: warmupSuccess };
   } catch (error) {
     console.error("Initialization failed:", error);
     return { success: false, error: error.message };

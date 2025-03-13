@@ -563,7 +563,7 @@ class ResponseQueue {
 
 const responseQueue = new ResponseQueue();
 
-// 修改主处理函数
+// 主处理函数
 exports.handler = async (event, context) => {
   try {
     console.log("RAG function called");
@@ -586,6 +586,9 @@ exports.handler = async (event, context) => {
       console.log(`Using existing session: ${sessionId}`);
     }
 
+    // 生成请求ID - 移到这里，确保在所有分支都能访问
+    const requestId = crypto.randomUUID();
+
     // 检查是否是简单问候（快速路径）
     const normalizedQuestion = question.toLowerCase().trim();
     if (GREETING_CACHE[normalizedQuestion]) {
@@ -607,8 +610,7 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // 对于复杂查询，仍使用异步处理模式
-    const requestId = crypto.randomUUID();
+    // 对于复杂查询，使用异步处理模式
     sessionStore.updateSession(sessionId, 'current_request', {
       id: requestId,
       question: question,

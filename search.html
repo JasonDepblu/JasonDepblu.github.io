@@ -42,58 +42,7 @@ author: Jason
     "哈喽": "哈喽！请问有什么可以帮助您的？"
   };
 
-  // 主要提问函数
-  sendBtn.onclick = async () => {
-    const question = questionInput.value.trim();
-    if (!question) return;
-
-    // 禁用发送按钮，防止重复点击
-    sendBtn.disabled = true;
-    sendBtn.textContent = '处理中...';
-
-    // 在界面添加用户提问
-    appendMessage('user', question);
-    questionInput.value = '';  // 清空输入框
-
-    // 添加"思考中"的提示
-    const thinkingId = 'thinking-' + Date.now();
-    appendThinkingMessage(thinkingId);
-
-    try {
-      // 调用RAG函数获取请求ID或直接获取答案
-      const requestId = await initiateRequest(question, sessionId);
-
-      // 如果没有requestId，说明已经直接显示了答案
-      if (!requestId) {
-        removeThinkingMessage(thinkingId);
-        // 恢复发送按钮
-        sendBtn.disabled = false;
-        sendBtn.textContent = '提交';
-        return;
-      }
-
-      // 开始轮询检查结果
-      const result = await pollForResult(requestId, thinkingId);
-
-      // 移除"思考中"提示
-      removeThinkingMessage(thinkingId);
-
-      // 根据结果更新UI
-      handleResult(result);
-
-    } catch(err) {
-      // 移除"思考中"提示
-      removeThinkingMessage(thinkingId);
-      console.error('处理失败:', err);
-      appendMessage('ai', `<p class="error-message">抱歉，获取回答失败: ${err.message}</p>`);
-    } finally {
-      // 恢复发送按钮
-      sendBtn.disabled = false;
-      sendBtn.textContent = '提交';
-    }
-  };
-
-  // 发起初始请求，获取requestId或直接获取答案
+    // 发起初始请求，获取requestId或直接获取答案
   async function initiateRequest(question, sessionId) {
     try {
       const response = await fetch(`${API_URL}/rag`, {
@@ -116,17 +65,76 @@ author: Jason
 
       // 检查是否直接返回了答案（适用于简单问候）
       if (data.answer) {
-        // 直接显示答案
-        appendMessage('ai', `<p>${data.answer}</p>`);
-        return null; // 返回null表示无需轮询
+        console.log("Received direct answer from backend");
+        return {
+          directAnswer: true,
+          answer: data.answer
+        };
       }
 
-      return data.requestId;
+      return {
+        directAnswer: false,
+        requestId: data.requestId
+      };
     } catch (error) {
       console.error('初始化请求失败:', error);
       throw error;
     }
   }
+
+  // 主要提问函数
+  sendBtn.onclick = async () => {
+    const question = questionInput.value.trim();
+    if (!question) return;
+
+    // 禁用发送按钮，防止重复点击
+    sendBtn.disabled = true;
+    sendBtn.textContent = '处理中...';
+
+    // 在界面添加用户提问
+    appendMessage('user', question);
+    questionInput.value = '';  // 清空输入框
+
+    // 添加"思考中"的提示
+    const thinkingId = 'thinking-' + Date.now();
+    appendThinkingMessage(thinkingId);
+
+    try {
+      // 调用RAG函数获取请求ID或直接获取答案
+      const result = await initiateRequest(question, sessionId);
+
+      // 如果收到直接答案
+      if (result.directAnswer) {
+        removeThinkingMessage(thinkingId);
+        appendMessage('ai', `<p>${result.answer}</p>`);
+        // 恢复发送按钮
+        sendBtn.disabled = false;
+        sendBtn.textContent = '提交';
+        return;
+      }
+
+      // 开始轮询检查结果
+      const pollResult = await pollForResult(result.requestId, thinkingId);
+
+      // 移除"思考中"提示
+      removeThinkingMessage(thinkingId);
+
+      // 根据结果更新UI
+      handleResult(pollResult);
+
+    } catch(err) {
+      // 移除"思考中"提示
+      removeThinkingMessage(thinkingId);
+      console.error('处理失败:', err);
+      appendMessage('ai', `<p class="error-message">抱歉，获取回答失败: ${err.message}</p>`);
+    } finally {
+      // 恢复发送按钮
+      sendBtn.disabled = false;
+      sendBtn.textContent = '提交';
+    }
+  };
+
+
 
   // 轮询检查结果
   async function pollForResult(requestId, thinkingId, attempts = 0) {

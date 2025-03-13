@@ -563,12 +563,11 @@ class ResponseQueue {
 
 const responseQueue = new ResponseQueue();
 
-// 主处理函数
+// 修改主处理函数
 exports.handler = async (event, context) => {
   try {
     console.log("RAG function called");
 
-    // 解析请求体
     const body = JSON.parse(event.body || '{}');
     const question = body.question || '';
     let sessionId = body.sessionId;
@@ -587,17 +586,29 @@ exports.handler = async (event, context) => {
       console.log(`Using existing session: ${sessionId}`);
     }
 
-    // 生成请求ID
-    const requestId = crypto.randomUUID();
-
     // 检查是否是简单问候（快速路径）
     const normalizedQuestion = question.toLowerCase().trim();
-    let isSimpleGreeting = GREETING_CACHE[normalizedQuestion] !== undefined;
-    if (!isSimpleGreeting) {
-      isSimpleGreeting = quickEvaluateNeedForRAG(question) === false;
+    if (GREETING_CACHE[normalizedQuestion]) {
+      const answer = GREETING_CACHE[normalizedQuestion];
+
+      // 更新会话和请求状态
+      updateSessionWithAnswer(sessionId, requestId, question, answer);
+
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+          answer: answer,
+          sessionId: sessionId
+        })
+      };
     }
 
-    // 初始化请求状态
+    // 对于复杂查询，仍使用异步处理模式
+    const requestId = crypto.randomUUID();
     sessionStore.updateSession(sessionId, 'current_request', {
       id: requestId,
       question: question,
@@ -607,10 +618,11 @@ exports.handler = async (event, context) => {
 
     console.log(`Created request ${requestId} in session ${sessionId}`);
 
-    // 将请求加入队列（问候优先）
-    responseQueue.addQuery(requestId, sessionId, question, isSimpleGreeting);
+    // 异步处理请求
+    processRagRequest(requestId, sessionId, question).catch(error => {
+      console.error(`Background processing failed for request ${requestId}:`, error);
+    });
 
-    // 立即返回请求ID和会话ID用于客户端轮询
     return {
       statusCode: 200,
       headers: {

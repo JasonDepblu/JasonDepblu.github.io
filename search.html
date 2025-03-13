@@ -55,36 +55,24 @@ author: Jason
     appendMessage('user', question);
     questionInput.value = '';  // 清空输入框
 
-    // 检查是否是简单问候（前端快速响应）
-    const normalizedQuestion = question.toLowerCase().trim();
-    if (GREETING_CACHE[normalizedQuestion]) {
-      console.log("Using frontend greeting cache");
-      appendMessage('ai', `<p>${GREETING_CACHE[normalizedQuestion]}</p>`);
-
-      // 在后台仍发送请求，以便更新会话历史
-      initiateRequest(question, sessionId).catch(error => {
-        console.error("Background request failed:", error);
-      });
-
-      // 恢复发送按钮
-      sendBtn.disabled = false;
-      sendBtn.textContent = '提交';
-      return;
-    }
-
     // 添加"思考中"的提示
     const thinkingId = 'thinking-' + Date.now();
     appendThinkingMessage(thinkingId);
 
     try {
-      // 第一步：调用RAG函数获取请求ID
+      // 调用RAG函数获取请求ID或直接获取答案
       const requestId = await initiateRequest(question, sessionId);
 
+      // 如果没有requestId，说明已经直接显示了答案
       if (!requestId) {
-        throw new Error('无法获取请求ID，请重试');
+        removeThinkingMessage(thinkingId);
+        // 恢复发送按钮
+        sendBtn.disabled = false;
+        sendBtn.textContent = '提交';
+        return;
       }
 
-      // 第二步：开始轮询检查结果
+      // 开始轮询检查结果
       const result = await pollForResult(requestId, thinkingId);
 
       // 移除"思考中"提示
@@ -105,7 +93,7 @@ author: Jason
     }
   };
 
-  // 发起初始请求，获取requestId
+  // 发起初始请求，获取requestId或直接获取答案
   async function initiateRequest(question, sessionId) {
     try {
       const response = await fetch(`${API_URL}/rag`, {
@@ -124,6 +112,13 @@ author: Jason
       if (data.sessionId) {
         sessionId = data.sessionId;
         localStorage.setItem('chatSessionId', sessionId);
+      }
+
+      // 检查是否直接返回了答案（适用于简单问候）
+      if (data.answer) {
+        // 直接显示答案
+        appendMessage('ai', `<p>${data.answer}</p>`);
+        return null; // 返回null表示无需轮询
       }
 
       return data.requestId;

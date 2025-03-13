@@ -203,7 +203,7 @@ async function evaluateNeedForRAG(question, conversationHistory) {
             { role: 'user', content: prompt }
           ],
           temperature: 0.3,
-          max_tokens: 10,
+          max_tokens: 90,
           stream: false
         })
       };

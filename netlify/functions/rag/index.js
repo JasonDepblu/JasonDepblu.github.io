@@ -269,7 +269,7 @@ async function evaluateNeedForRAG(question, conversationHistory) {
 }
 
 // 从Pinecone检索上下文
-async function retrieveContext(queryEmbedding, topK = 2) {
+async function retrieveContext(queryEmbedding, topK = 3) {
   try {
     console.log("Retrieving context from Pinecone...");
 

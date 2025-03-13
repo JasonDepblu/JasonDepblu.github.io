@@ -115,27 +115,27 @@ async function evaluateNeedForRAG(question, conversationHistory) {
 
     // 构建提示以评估查询
     const prompt = `
-你是一个决策智能体，负责确定是否需要外部知识来回答用户的问题。
-请评估以下查询，判断是否需要从知识库检索信息：
-
-用户问题: ${question}
-
-最近的对话历史:
-${conversationHistory.slice(-3).map(item => `
-用户: ${item.user}
-助手: ${item.assistant}
-`).join('\n')}
-
-如果问题是关于具体知识、博客内容、特定话题或需要最新信息，请回答 "NEED_RAG"。
-如果问题是闲聊、打招呼、感谢或简单的后续问题（基于之前对话可以回答），请回答 "NO_RAG"。
-只返回 "NEED_RAG" 或 "NO_RAG"，不要有其他文字。
-`;
+      你是一个决策智能体，负责确定是否需要外部知识来回答用户的问题。
+      请评估以下查询，判断是否需要从知识库检索信息：
+      
+      用户问题: ${question}
+      
+      最近的对话历史:
+      ${conversationHistory.slice(-3).map(item => `
+      用户: ${item.user}
+      助手: ${item.assistant}
+      `).join('\n')}
+      
+      如果问题是关于具体知识、博客内容、特定话题或需要最新信息，请回答 "NEED_RAG"。
+      如果问题是闲聊、打招呼、感谢或简单的后续问题（基于之前对话可以回答），请回答 "NO_RAG"。
+      只返回 "NEED_RAG" 或 "NO_RAG"，不要有其他文字。
+     `;
 
     // 调用 LLM 进行评估
     const response = await axios.post(
       'https://api.siliconflow.cn/v1/chat/completions',
       {
-        model: LLM_MODEL2,
+        model: LLM_MODEL,
         messages: [
           { role: 'user', content: prompt }
         ],
@@ -165,7 +165,6 @@ ${conversationHistory.slice(-3).map(item => `
   }
 }
 
-// 从Pinecone检索上下文
 // 从Pinecone检索上下文
 async function retrieveContext(queryEmbedding, topK = 5) {
   try {

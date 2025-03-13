@@ -1,6 +1,5 @@
 [build.environment]
   RUBY_VERSION = "3.3.5"
-#  PYTHON_VERSION = "3.10"
 
 [build]
   publish = "_site"
@@ -9,16 +8,9 @@
 [dev]
   publish = "_site"
   functions = "netlify/functions"
-  # Specify framework to avoid auto-detection issues
-#  framework = "#custom"
 
 [functions]
   directory = "netlify/functions"
-  # This pattern tells Netlify to include .py files and requirements.txt
-#  included_files = ["netlify/functions/**/*.py", "netlify/functions/**/requirements.txt"]
-
-#[functions.environment]
-#  PYTHON_VERSION = "3.11"
 
 [functions.rag]
   timeout = 60
@@ -29,12 +21,12 @@
 [[redirects]]
   from = "/functions/*"
   to = "/.netlify/functions/:splat"
-#  to = "http://localhost:8000/api/:splat"
   status = 200
   force = true
 
-#[[redirects]]
-#  from = "/myblog/*"
-#  to = "/:splat"
-#  status = 301
-#  force = true
+# 这是重要的一步 - 确保 _site 目录中的文件被正确提供
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false

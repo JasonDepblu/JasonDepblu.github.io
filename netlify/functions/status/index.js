@@ -1,11 +1,14 @@
-const sessionStore = require('../../netlify/functions/shared/session_store.js');
+const sessionStore = require('../shared/session_store.js');
 
 exports.handler = async (event, context) => {
   try {
+    console.log("Status function called");
+
     const body = JSON.parse(event.body || '{}');
     const requestId = body.requestId;
 
     if (!requestId) {
+      console.error("Missing requestId");
       return {
         statusCode: 400,
         headers: {
@@ -16,11 +19,11 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Load all sessions from storage
+    // 加载所有会话
     const allSessions = sessionStore.getAllSessions();
     console.log("Available sessions:", Object.keys(allSessions));
 
-    // Search for the request in all sessions
+    // 在所有会话中搜索请求
     let found = false;
     let response = {
       requestId: requestId,

@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const sessionStore = require('../shared/session_store.js');
+const sessionStore = require('../../netlify/functions/shared/session_store.js');
 
 exports.handler = async (event, context) => {
   try {

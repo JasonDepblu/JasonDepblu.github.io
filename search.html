@@ -26,13 +26,21 @@ author: Jason
   // 从本地存储中获取会话ID，用于维持对话连续性
   let sessionId = localStorage.getItem('chatSessionId');
   // 设置轮询相关参数
-  const POLL_INTERVAL = 3000; // 轮询间隔，毫秒
-  const MAX_POLL_ATTEMPTS = 50; // 最大轮询次数 (50 × 3秒 = 最多150秒)
-  // API 端点配置 - 现在指向同一个 Python 服务
-  const API_URL = 'https://jasondepblu.netlify.app/.netlify/functions';
-  // 或者如果你运行的是本地服务器，可以使用：
-  // const API_URL = 'http://localhost:8000/api';
-  // const API_URL = 'functions/';
+  const POLL_INTERVAL = 2000; // 减少轮询间隔，提高响应速度
+  const MAX_POLL_ATTEMPTS = 60; // 最大轮询次数
+  // API 端点配置
+  const API_URL = '/.netlify/functions';
+
+  // 简单问候的本地缓存
+  const GREETING_CACHE = {
+    "hi": "你好！我是博客助手，可以回答您关于博客内容的问题。有什么可以帮助您的吗？",
+    "hello": "你好！有什么我可以帮助你的吗？",
+    "hey": "嗨！有什么我可以帮助你的吗？",
+    "你好": "你好！有什么我可以帮助你的吗？",
+    "hello there": "你好！很高兴为您服务。请问有什么问题吗？",
+    "嗨": "嗨！我是博客助手，很高兴能帮助您。",
+    "哈喽": "哈喽！请问有什么可以帮助您的？"
+  };
 
   // 主要提问函数
   sendBtn.onclick = async () => {
@@ -46,6 +54,23 @@ author: Jason
     // 在界面添加用户提问
     appendMessage('user', question);
     questionInput.value = '';  // 清空输入框
+
+    // 检查是否是简单问候（前端快速响应）
+    const normalizedQuestion = question.toLowerCase().trim();
+    if (GREETING_CACHE[normalizedQuestion]) {
+      console.log("Using frontend greeting cache");
+      appendMessage('ai', `<p>${GREETING_CACHE[normalizedQuestion]}</p>`);
+
+      // 在后台仍发送请求，以便更新会话历史
+      initiateRequest(question, sessionId).catch(error => {
+        console.error("Background request failed:", error);
+      });
+
+      // 恢复发送按钮
+      sendBtn.disabled = false;
+      sendBtn.textContent = '提交';
+      return;
+    }
 
     // 添加"思考中"的提示
     const thinkingId = 'thinking-' + Date.now();

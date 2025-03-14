@@ -1,10 +1,53 @@
+// netlify/functions/status/index.js
 const sessionStore = require('../shared/session_store.js');
 
 exports.handler = async (event, context) => {
+  // 增加对 OPTIONS 请求的处理，支持 CORS 预检
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+        'Access-Control-Allow-Methods': 'POST,GET,OPTIONS',
+        'Access-Control-Max-Age': '86400'
+      },
+      body: ''
+    };
+  }
+
+  // 检查请求方法
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({ error: "Method not allowed. Use POST." })
+    };
+  }
+
+  // 处理主要逻辑
   try {
     console.log("Status function called");
+    console.log("HTTP Method:", event.httpMethod);
 
-    const body = JSON.parse(event.body || '{}');
+    let body;
+    try {
+      body = JSON.parse(event.body || '{}');
+    } catch (parseError) {
+      console.error("Error parsing request body:", parseError);
+      return {
+        statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ error: "Invalid JSON in request body" })
+      };
+    }
+
     const requestId = body.requestId;
 
     if (!requestId) {
@@ -20,8 +63,21 @@ exports.handler = async (event, context) => {
     }
 
     // 加载所有会话
-    const allSessions = sessionStore.getAllSessions();
-    console.log("Available sessions:", Object.keys(allSessions));
+    let allSessions;
+    try {
+      allSessions = sessionStore.getAllSessions();
+      console.log("Available sessions:", Object.keys(allSessions).length);
+    } catch (sessionError) {
+      console.error("Error loading sessions:", sessionError);
+      return {
+        statusCode: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ error: "Failed to load sessions" })
+      };
+    }
 
     // 在所有会话中搜索请求
     let found = false;
@@ -76,19 +132,24 @@ exports.handler = async (event, context) => {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-cache'
       },
       body: JSON.stringify(response)
     };
   } catch (error) {
     console.error("Status function error:", error);
+    console.error("Error stack:", error.stack);
     return {
       statusCode: 500,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      })
     };
   }
 };

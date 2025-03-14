@@ -65,18 +65,41 @@ function quickEvaluateNeedForRAG(question) {
   return null; // 未确定，需要进一步评估
 }
 
-// 更新Pinecone初始化函数 - 添加environment参数
+// 更新 Pinecone 初始化函数 - 基于最新官方示例
+// 更新 Pinecone 初始化函数 - 确保提供 environment 参数
 async function initPinecone() {
   try {
     if (!pineconeIndex) {
       console.log("Initializing Pinecone client...");
+
+      // 检查环境变量
+      if (!PINECONE_API_KEY) {
+        throw new Error("Missing Pinecone API key");
+      }
+
+      // 确保有 environment 参数
+      const environment = process.env.PINECONE_ENVIRONMENT;
+      if (!environment) {
+        console.error("Missing PINECONE_ENVIRONMENT variable");
+        throw new Error("Pinecone environment must be specified");
+      }
+
+      const indexName = PINECONE_INDEX_NAME || 'blog-content';
+
+      console.log(`Pinecone environment: ${environment}`);
+      console.log(`Pinecone index name: ${indexName}`);
+
+      // 使用必要的 environment 参数初始化
       const pinecone = new Pinecone({
         apiKey: PINECONE_API_KEY,
-        environment: process.env.PINECONE_ENVIRONMENT || 'us-east-1' // 添加必需的environment参数
+        environment: environment  // 这是必需的参数
       });
-      pineconeIndex = pinecone.index(PINECONE_INDEX_NAME);
-      console.log("Pinecone client initialized.");
+
+      // 创建索引实例
+      pineconeIndex = pinecone.index(indexName);
+      console.log("Pinecone client initialized successfully");
     }
+
     return pineconeIndex;
   } catch (error) {
     console.error("Failed to initialize Pinecone:", error);
@@ -85,6 +108,8 @@ async function initPinecone() {
 }
 
 // 使用硅基流动API获取嵌入向量
+// 替换原有的嵌入向量获取函数
+// 移除 fetch API 使用，完全使用 axios
 async function getEmbedding(text) {
   try {
     console.log("Getting embedding for text using Silicon Flow API...");
@@ -97,40 +122,8 @@ async function getEmbedding(text) {
 
     console.log("Silicon Flow API key status:", SILICONE_API_KEY ? "Key present" : "Key missing");
 
-    // 尝试使用fetch API
+    // 使用 axios 发送请求
     try {
-      const options = {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SILICONE_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: EMBEDDING_MODEL,
-          input: text
-        })
-      };
-
-      // 添加超时控制
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒超时
-      options.signal = controller.signal;
-
-      const response = await fetch('https://api.siliconflow.cn/v1/embeddings', options);
-      clearTimeout(timeoutId); // 清除超时
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Error getting embedding: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log("Successfully generated embedding with Silicon Flow API");
-      return data.data[0].embedding;
-    } catch (fetchError) {
-      console.log("Fetch API failed, falling back to axios:", fetchError.message);
-
-      // 备用：使用axios
       const response = await axios.post(
         'https://api.siliconflow.cn/v1/embeddings',
         {
@@ -140,24 +133,37 @@ async function getEmbedding(text) {
         {
           headers: {
             'Authorization': `Bearer ${SILICONE_API_KEY}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (compatible; BlogAssistantAgent/1.0)',
+            'Connection': 'keep-alive'
           },
           timeout: 60000 // 60秒超时
         }
       );
 
       if (response.status !== 200) {
-        throw new Error(`Error getting embedding: ${response.data}`);
+        throw new Error(`Error getting embedding: ${JSON.stringify(response.data)}`);
       }
 
       console.log("Successfully generated embedding with axios");
       return response.data.data[0].embedding;
+    } catch (axiosError) {
+      console.error("Failed to get embedding with axios:", axiosError.message);
+
+      // 如果是超时错误，提供更明确的错误信息
+      if (axiosError.code === 'ECONNABORTED') {
+        throw new Error("Embedding request timed out after 60 seconds");
+      }
+
+      // 如果响应中包含详细错误信息，则提取
+      if (axiosError.response && axiosError.response.data) {
+        throw new Error(`API Error: ${JSON.stringify(axiosError.response.data)}`);
+      }
+
+      throw axiosError;
     }
   } catch (error) {
     console.error("Failed to get embedding:", error);
-    if (error.name === 'AbortError') {
-      console.log("Embedding request timed out");
-    }
     throw error;
   }
 }
@@ -486,8 +492,7 @@ ${question}
   }
 }
 
-// 将对话存储到Pinecone
-// 改进的对话存储函数
+// 更新存储对话函数 - 使用新的 API 格式
 async function storeConversationInPinecone(question, answer, sessionId) {
   try {
     console.log("Storing conversation in Pinecone...");
@@ -498,83 +503,96 @@ async function storeConversationInPinecone(question, answer, sessionId) {
       return;
     }
 
-    // 生成对话的嵌入向量 (使用硅基流动API)
-    const conversationText = `问题: ${question}\n回答: ${answer}`;
-    let embedding;
-    try {
-      embedding = await getEmbedding(conversationText);
-      if (!embedding || embedding.length === 0) {
-        console.log("Skip storing conversation due to embedding failure");
-        return;
-      }
-    } catch (embeddingError) {
-      console.error("Failed to generate embedding for conversation:", embeddingError);
-      return;
-    }
-
     // 初始化Pinecone
     let index;
     try {
       index = await initPinecone();
+      if (!index) {
+        throw new Error("Failed to initialize Pinecone index");
+      }
     } catch (pineconeError) {
       console.error("Unable to initialize Pinecone:", pineconeError);
       return;
     }
 
-    // 创建要存储的对象
-    const timestamp = new Date().toISOString();
-    const id = `conv_${sessionId}_${timestamp}_${crypto.randomUUID().substring(0, 8)}`;
+    // 创建命名空间实例 - 使用默认命名空间或空字符串
+    const namespace = index.namespace("");
+    console.log("Using Pinecone namespace: default (empty string)");
 
-    const vectorData = {
-      id: id,
-      values: embedding,
+    // 生成ID
+    const timestamp = new Date().toISOString();
+    const recordId = `conv_${sessionId}_${timestamp}_${crypto.randomUUID().substring(0, 8)}`;
+
+    // 准备要upsert的记录
+    const record = {
+      _id: recordId,
+      chunk_text: `问题: ${question}\n回答: ${answer}`,
       metadata: {
-        content: conversationText,
-        title: `对话片段: ${question.substring(0, 30)}...`,
-        url: `/conversations/${sessionId}`,
         type: 'conversation',
         timestamp: timestamp,
-        sessionId: sessionId
+        sessionId: sessionId,
+        url: `/conversations/${sessionId}`
       }
     };
 
-    // 使用正确的Pinecone upsert格式
-    console.log("Upserting vector to Pinecone...");
+    // 尝试upsert操作
     try {
-      // 修复的upsert方法 - 确保使用数组格式
-      const upsertResponse = await index.upsert({
-        vectors: [vectorData]
-      });
-      console.log(`Conversation stored in Pinecone with ID: ${id}`);
-      console.log("Upsert response:", upsertResponse);
-      return;
+      console.log("Upserting record to Pinecone...");
+      await namespace.upsertRecords([record]);
+      console.log(`Conversation successfully stored in Pinecone with ID: ${recordId}`);
     } catch (upsertError) {
       console.error("Failed to upsert to Pinecone:", upsertError);
 
-      // 降级：尝试简化的upsert格式
+      // 如果失败，尝试直接使用index而不是namespace
       try {
-        console.log("Trying simplified upsert format...");
-        // 简化格式，只保留必要的字段
-        const simplifiedVector = {
-          id: id,
-          values: embedding,
-          metadata: {
-            content: conversationText.substring(0, 1000), // 裁剪内容长度
-            type: 'conversation'
-          }
-        };
+        console.log("Trying direct index upsertRecords...");
+        await index.upsertRecords([record]);
+        console.log(`Conversation stored using direct index upsert, ID: ${recordId}`);
+      } catch (directError) {
+        console.error("Direct index upsert also failed:", directError);
 
-        await index.upsert({
-          vectors: [simplifiedVector]
-        });
-        console.log(`Conversation stored in Pinecone with simplified format, ID: ${id}`);
-      } catch (fallbackError) {
-        console.error("All Pinecone upsert attempts failed:", fallbackError);
+        // 如果所有尝试都失败，可以考虑本地存储作为备选
+        await storeConversationLocally(question, answer, sessionId);
       }
     }
   } catch (error) {
     console.error("Error in storing conversation:", error);
     // 继续执行，不阻止主流程
+  }
+}
+
+// 本地存储备选方案
+async function storeConversationLocally(question, answer, sessionId) {
+  try {
+    const conversationEntry = {
+      id: crypto.randomUUID(),
+      sessionId: sessionId,
+      question: question,
+      answer: answer,
+      timestamp: new Date().toISOString()
+    };
+
+    const CONV_FILE = path.join('/tmp', 'conversations.json');
+
+    let conversations = [];
+    if (fs.existsSync(CONV_FILE)) {
+      try {
+        const data = fs.readFileSync(CONV_FILE, 'utf8');
+        conversations = JSON.parse(data);
+      } catch (e) {
+        // 如果解析失败，使用空数组
+      }
+    }
+
+    conversations.push(conversationEntry);
+    if (conversations.length > 100) {
+      conversations = conversations.slice(-100);
+    }
+
+    fs.writeFileSync(CONV_FILE, JSON.stringify(conversations));
+    console.log("Conversation stored locally as fallback");
+  } catch (error) {
+    console.error("Failed to store conversation locally:", error);
   }
 }
 
@@ -753,13 +771,53 @@ async function warmupConnections() {
   }
 }
 
-// 在主处理函数中添加即时响应功能
+// 修改后的主处理函数
 exports.handler = async (event, context) => {
+  // 增加对 OPTIONS 请求的处理
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+        'Access-Control-Allow-Methods': 'POST,GET,OPTIONS',
+        'Access-Control-Max-Age': '86400'
+      },
+      body: ''
+    };
+  }
+
+  // 仅接受POST请求
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({ error: "Method not allowed. Use POST." })
+    };
+  }
+
   try {
     console.log("RAG function called");
+    console.log("HTTP Method:", event.httpMethod);
 
     // 解析请求体
-    const body = JSON.parse(event.body || '{}');
+    let body;
+    try {
+      body = JSON.parse(event.body || '{}');
+    } catch (parseError) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ error: "Invalid JSON in request body" })
+      };
+    }
+
     const question = body.question || '';
     let sessionId = body.sessionId;
 
@@ -767,6 +825,17 @@ exports.handler = async (event, context) => {
     const preferFastResponse = body.preferFastResponse === true;
 
     console.log(`Question received: ${question}`);
+
+    if (!question || question.trim() === '') {
+      return {
+        statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ error: "Question cannot be empty" })
+      };
+    }
 
     // 创建或获取会话
     if (!sessionId || !sessionStore.getSession(sessionId)) {
@@ -792,16 +861,17 @@ exports.handler = async (event, context) => {
       updateSessionWithAnswer(sessionId, requestId, question, answer);
 
       // 异步存储对话（不阻塞响应）
-      setTimeout(() => {
+      Promise.resolve().then(() => {
         storeConversationInPinecone(question, answer, sessionId)
           .catch(error => console.error("Background conversation storage failed:", error));
-      }, 10);
+      });
 
       return {
         statusCode: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-cache'
         },
         body: JSON.stringify({
           answer: answer,
@@ -834,9 +904,19 @@ exports.handler = async (event, context) => {
 我会尽快提供详细回答。您可以继续浏览其他内容，稍后回来查看完整回答。`;
       }
 
+      // 初始化请求状态
+      sessionStore.updateSession(sessionId, 'current_request', {
+        id: requestId,
+        question: question,
+        status: 'processing',
+        started_at: Date.now()
+      });
+
       // 启动异步处理，不等待完成
-      processRagRequest(requestId, sessionId, question).catch(error => {
-        console.error(`Background processing failed for request ${requestId}:`, error);
+      Promise.resolve().then(() => {
+        processRagRequest(requestId, sessionId, question).catch(error => {
+          console.error(`Background processing failed for request ${requestId}:`, error);
+        });
       });
 
       // 返回快速响应
@@ -844,7 +924,8 @@ exports.handler = async (event, context) => {
         statusCode: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-cache'
         },
         body: JSON.stringify({
           requestId: requestId,
@@ -867,8 +948,10 @@ exports.handler = async (event, context) => {
     console.log(`Created request ${requestId} in session ${sessionId}`);
 
     // 启动处理但不等待完成 (异步模式)
-    processRagRequest(requestId, sessionId, question).catch(error => {
-      console.error(`Background processing failed for request ${requestId}:`, error);
+    Promise.resolve().then(() => {
+      processRagRequest(requestId, sessionId, question).catch(error => {
+        console.error(`Background processing failed for request ${requestId}:`, error);
+      });
     });
 
     // 返回请求ID用于客户端轮询
@@ -876,7 +959,8 @@ exports.handler = async (event, context) => {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'no-cache'
       },
       body: JSON.stringify({
         requestId: requestId,
@@ -887,13 +971,17 @@ exports.handler = async (event, context) => {
     };
   } catch (error) {
     console.error("Error in handler:", error);
+    console.error("Error stack:", error.stack);
     return {
       statusCode: 500,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      })
     };
   }
 };

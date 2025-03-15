@@ -25,7 +25,6 @@ const DEEPSEEK_REASONER_MODEL = 'deepseek-reasoner'; // 用于回答生成
 
 // 初始化 Pinecone 客户端
 let pineconeIndex = null;
-
 // 简单问候的缓存
 const GREETING_CACHE = {
   "hi": "你好！我是博客助手，可以回答您关于博客内容的问题。有什么可以帮助您的吗？",

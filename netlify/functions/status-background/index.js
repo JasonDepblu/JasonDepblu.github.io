@@ -49,7 +49,6 @@ exports.handler = async (event, context) => {
     }
 
     const requestId = body.requestId;
-
     if (!requestId) {
       console.error("Missing requestId");
       return {

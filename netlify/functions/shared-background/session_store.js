@@ -8,7 +8,6 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 // 调试信息
 console.log(`Current environment: ${isProduction ? 'production' : 'development'}`);
-
 // 会话存储文件路径
 const SESSIONS_FILE = path.join('/tmp', 'sessions.json');
 console.log(`Session file path: ${SESSIONS_FILE}`);

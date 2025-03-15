@@ -72,7 +72,7 @@ author: Jason
 
       while (retries < maxRetries) {
         try {
-          const response = await fetch(`${API_URL}/rag`, {
+          const response = await fetch(`${API_URL}/rag-background`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -239,7 +239,7 @@ author: Jason
         updateThinkingMessage(thinkingId, attempts);
       }
 
-      const response = await fetch(`${API_URL}/status`, {
+      const response = await fetch(`${API_URL}/status-background`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requestId })

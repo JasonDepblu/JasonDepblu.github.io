@@ -1,4 +1,4 @@
-// netlify/functions/shared/session_store.js
+// netlify/functions/shared-background/session_store.js
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');

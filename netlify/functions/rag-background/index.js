@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const axios = require('axios'); // 保留axios用于硅基流动API
 const { OpenAI } = require('openai'); // 用于DeepSeek API
 const { Pinecone } = require('@pinecone-database/pinecone');
-const sessionStore = require('../shared/session_store.js');
+const sessionStore = require('../shared-background/session_store.js');
 
 // 环境变量配置
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;
@@ -120,7 +120,7 @@ async function getEmbedding(text) {
       throw new Error("Silicon Flow API key is not configured");
     }
 
-    console.log("Silicon Flow API key status:", SILICONE_API_KEY ? "Key present" : "Key missing");
+    console.log("Silicon Flow API key status-background:", SILICONE_API_KEY ? "Key present" : "Key missing");
 
     // 使用 axios 发送请求
     try {
@@ -213,6 +213,8 @@ async function evaluateNeedForRAG(question, conversationHistory) {
         temperature: 0.3,
         max_tokens: 50
       });
+
+      console.log("Using DeepSeek Chat API for evaluation...");
 
       const decision = completion.choices[0].message.content.trim();
       console.log(`RAG decision (DeepSeek): ${decision}`);
@@ -632,7 +634,7 @@ function updateSessionWithAnswer(sessionId, requestId, question, answer) {
         answer: answer,
         completed_at: Date.now()
       });
-      console.log("Updated request status only");
+      console.log("Updated request status-background only");
     } catch (fallbackError) {
       console.error("Failed to update session even with fallback approach:", fallbackError);
     }

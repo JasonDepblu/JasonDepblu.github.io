@@ -1,5 +1,5 @@
-// netlify/functions/status/index.js
-const sessionStore = require('../shared/session_store.js');
+// netlify/functions/status-background/index.js
+const sessionStore = require('../shared-background/session_store.js');
 
 exports.handler = async (event, context) => {
   // 增加对 OPTIONS 请求的处理，支持 CORS 预检

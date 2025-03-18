@@ -1,4 +1,4 @@
-const sessionStore = require('../../netlify/functions/shared123/session_store.js');
+const sessionStore = require('../../netlify/functions/shared-background/session_store.js');
 
 exports.handler = async (event, context) => {
   try {

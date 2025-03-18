@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const sessionStore = require('../../netlify/functions/shared123/session_store.js');
+const sessionStore = require('../../netlify/functions/shared-background/session_store.js');
 
 exports.handler = async (event, context) => {
   try {
@@ -11,7 +11,7 @@ exports.handler = async (event, context) => {
 
     console.log("Function directory:", __dirname);
     console.log("Looking for Python script at:", scriptPath);
-    // const scriptPath = path.join(projectRoot, 'netlify', 'functions', 'rag', 'combined_status.py');
+    // const scriptPath = path.join(projectRoot, 'netlify', 'functions', 'rag-background', 'combined_status.py');
 
     if (!fs.existsSync(scriptPath)) {
       console.error(`Python script not found at: ${scriptPath}`);
@@ -82,7 +82,7 @@ exports.handler = async (event, context) => {
 // Function to process the RAG request in the background
 function processRagInBackground(requestId, sessionId, question, event) {
   const projectRoot = process.cwd();
-  const scriptPath = path.join(projectRoot, 'netlify', 'functions', 'rag', 'combined_status.py');
+  const scriptPath = path.join(projectRoot, 'netlify', 'functions', 'rag-background', 'combined_status.py');
 
   // Make sure the Python script exists
   if (!fs.existsSync(scriptPath)) {

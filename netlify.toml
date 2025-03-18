@@ -12,11 +12,11 @@
 [functions]
   directory = "netlify/functions"
 
-[functions.rag-background]
-  timeout = 30
+[functions.rag]
+  timeout = 60
 
-[functions.status-background]
-  timeout = 10
+[functions.status]
+  timeout = 30
 
 [[redirects]]
   from = "/functions/*"

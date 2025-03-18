@@ -8,8 +8,8 @@ from shared.session_store import sessions
 
 
 def handler(event, context):
-    """Handle the status-background check request."""
-    response_data = {"status-background": "initializing"}
+    """Handle the status check request."""
+    response_data = {"status": "initializing"}
 
     try:
         body = json.loads(event["body"])
@@ -29,11 +29,11 @@ def handler(event, context):
             current_request = session_data.get("current_request", {})
             if current_request.get("id") == request_id:
                 found = True
-                status = current_request.get("status-background", "unknown")
+                status = current_request.get("status", "unknown")
 
                 response_data = {
                     "requestId": request_id,
-                    "status-background": status,
+                    "status": status,
                     "sessionId": session_id
                 }
 
@@ -49,7 +49,7 @@ def handler(event, context):
 
         if not found:
             response_data = {
-                "status-background": "unknown",
+                "status": "unknown",
                 "error": "Request not found",
                 "requestId": request_id
             }

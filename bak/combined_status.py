@@ -31,9 +31,9 @@ def set_session(session_id, data):
 
 
 def handler(event, context=None):
-    """Handle the status-background check request."""
+    """Handle the status check request."""
     try:
-        print("DEBUG: Starting status-background handler function")
+        print("DEBUG: Starting status handler function")
 
         # Parse the request body
         if isinstance(event, str):
@@ -68,7 +68,7 @@ def handler(event, context=None):
         found = False
         response = {
             "requestId": request_id,
-            "status-background": "unknown"
+            "status": "unknown"
         }
 
         for session_id, session_data in all_sessions.items():
@@ -78,11 +78,11 @@ def handler(event, context=None):
                 found = True
                 print(f"DEBUG: Found request {request_id} in session {session_id}")
 
-                status = current_request.get("status-background", "unknown")
+                status = current_request.get("status", "unknown")
                 response = {
                     "requestId": request_id,
                     "sessionId": session_id,
-                    "status-background": status
+                    "status": status
                 }
 
                 if status == "completed":
@@ -106,12 +106,12 @@ def handler(event, context=None):
                 },
                 "body": json.dumps({
                     "requestId": request_id,
-                    "status-background": "unknown",
+                    "status": "unknown",
                     "error": "Request not found in any session"
                 })
             }
 
-        print(f"DEBUG: Returning status-background response for request {request_id}")
+        print(f"DEBUG: Returning status response for request {request_id}")
         return {
             "statusCode": 200,
             "headers": {
@@ -123,7 +123,7 @@ def handler(event, context=None):
 
     except Exception as e:
         error_message = str(e)
-        print(f"ERROR in status-background handler: {error_message}")
+        print(f"ERROR in status handler: {error_message}")
         import traceback
         print(traceback.format_exc())
 
@@ -143,13 +143,13 @@ def lambda_handler(event, context):
 
 
 class StatusRequestHandler(BaseHTTPRequestHandler):
-    """HTTP request handler for status-background checks when running as a server."""
+    """HTTP request handler for status checks when running as a server."""
 
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length).decode('utf-8')
 
-        if self.path == "/api/status-background":
+        if self.path == "/api/status":
             result = handler(post_data)
             self.send_response(result.get("statusCode", 200))
             self.send_header('Content-type', 'application/json')
@@ -208,7 +208,7 @@ if __name__ == "__main__":
 
     # Start a simple HTTP server if run directly without input
     try:
-        print("Starting HTTP server for status-background checks on port 8001...")
+        print("Starting HTTP server for status checks on port 8001...")
         server = HTTPServer(('localhost', 8001), StatusRequestHandler)
         server.serve_forever()
     except KeyboardInterrupt:

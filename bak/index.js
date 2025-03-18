@@ -3,7 +3,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const axios = require('axios');
 const { Pinecone } = require('@pinecone-database/pinecone');
-const sessionStore = require('../netlify/functions/shared-background/session_store.js');
+const sessionStore = require('../netlify/functions/shared123/session_store.js');
 
 // 环境变量配置
 const PINECONE_API_KEY = process.env.PINECONE_API_KEY;

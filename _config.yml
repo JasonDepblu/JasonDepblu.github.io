@@ -1,7 +1,7 @@
-title: Your Site Title
+title: Jason's Blog
 email: your-email@example.com
 description: >-
-  Your site description.
+  Jason‘s personal blog which shares papers, tech and interesting thing.
 baseurl: "" # Set to empty string for root path or "/myblog" for subfolder
 url: "" # the base hostname & protocol for your site
 markdown: kramdown

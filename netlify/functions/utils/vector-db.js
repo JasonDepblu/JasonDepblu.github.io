@@ -81,7 +81,7 @@ async function initPinecone(apiKey, indexName) {
 
     // Get index instance
     console.log(`[4] Getting Pinecone index instance for: ${indexName}`);
-    const pineconeIndex = pinecone.index(indexName='jasonsblog',
+    const pineconeIndex = pinecone.index(indexName=indexName,
         host='https://jasonsblog-w9ktixk.svc.aped-4627-b74a.pinecone.io');
 
     // Update cache timestamp

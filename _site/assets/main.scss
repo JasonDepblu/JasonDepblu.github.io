@@ -1,0 +1,50 @@
+//@import "/Users/depblu/.gem/ruby/3.3.5/gems/jekyll-theme-minima-0.1.1/_sass/minima";
+//@import "/Users/depblu/.gem/ruby/3.3.5/gems/jekyll-theme-minimal-0.2.0/_sass/minimal";
+// Override spacing unit to use calc() instead of division
+$spacing-unit: 30px;
+
+%clearfix:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+$primary-color: #333;
+$default-bg: #ebebeb;
+$post-bg: #ffffff;
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: $default-bg;
+
+  &.post-layout {
+    background-color: $post-bg;
+  }
+}
+
+.wrapper {
+  padding-right: calc($spacing-unit / 2);
+  padding-left: calc($spacing-unit / 2);
+}
+
+body {
+  color: $primary-color;
+}
+
+.button {
+  background-color: $primary-color;
+  padding: 10px 20px;
+}
+
+/* 假设图片的父容器是 .image-container */
+.image-container {
+  width: 300px; /* 设置容器的宽度 */
+}
+
+.image-container img {
+  max-width: 100%;
+  height: auto;
+}

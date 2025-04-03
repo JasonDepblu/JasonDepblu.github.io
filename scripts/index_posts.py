@@ -198,18 +198,24 @@ def process_and_index_files():
                 embedding = get_embedding(chunk)
                 if embedding:
                     vector = {
-                        "id": vector_id,
-                        "values": embedding,
-                        "metadata": {
-                            "title": title,
-                            "url": url_path,
-                            "content": chunk,
-                            "chunk_index": i,
-                            "source_file": basename,
-                            "date": frontmatter.get("date", ""),
-                            "categories": frontmatter.get("categories", []),
-                            "tags": frontmatter.get("tags", [])
-                        }
+                        "posts",
+                              [
+                                  {
+                                    "id": vector_id,
+                                    "values": embedding,
+                                    "metadata":
+                                        {
+                                            "title": title,
+                                            "url": url_path,
+                                            "content": chunk,
+                                            "chunk_index": i,
+                                            "source_file": basename,
+                                            "date": frontmatter.get("date", ""),
+                                            "categories": frontmatter.get("categories", []),
+                                            "tags": frontmatter.get("tags", [])
+                                        }
+                                  }
+                              ]
                     }
                     post_vectors.append(vector)
                     vectors_batch.append(vector)

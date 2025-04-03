@@ -1,10 +1,20 @@
-title: Your Site Title
-email: your-email@example.com
+title: Jason‘s Blog
+email: depblugz@gmail.com
 description: >-
-  Your site description.
+  Jason's personal blog which shares latest papers, his thoughts and experiences about life, work and technology.
 baseurl: "" # Set to empty string for root path or "/myblog" for subfolder
 url: "" # the base hostname & protocol for your site
 markdown: kramdown
 theme: minima
 plugins:
   - jekyll-feed
+exclude:
+  - chat/
+  - node_modules
+  - src
+  - public/
+  - build/
+  - netlify
+  - package.json
+  - package-lock.json
+keep_files: ['chat']

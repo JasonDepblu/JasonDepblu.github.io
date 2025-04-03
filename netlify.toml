@@ -2,12 +2,19 @@
   RUBY_VERSION = "3.3.5"
 
 [build]
+#  command = "./build-integrated.sh" # "jekyll build " # && npm run build:chat
+  pubilish = "build"
   publish = "_site"
   functions = "netlify/functions"
 
 [dev]
-  publish = "_site"
   functions = "netlify/functions"
+  command = "npm run dev"
+  port = 8080
+  targetPort = 8889
+  publish = "/chat"
+  framework = "jekyll"
+#  functions = "netlify/functions"
 
 [functions]
   directory = "netlify/functions"
@@ -24,8 +31,13 @@
   status = 200
   force = true
 
+#[[redirects]]
+#  from = "/*"
+#  to = "/index.html"
+#  status = 200
+#  force = false
+
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = "/chat/*"
+  to = "/chat/index.html"
   status = 200
-  force = false

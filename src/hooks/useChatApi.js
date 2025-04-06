@@ -126,7 +126,7 @@ function useChatApi(sessionId, setSessionId) {
         while (retries < maxRetries) {
           try {
             console.log(`尝试请求 ${retries + 1}/${maxRetries}...`);
-            const response = await fetchWithTimeout(`${API_URL}/rag`, {
+            const response = await fetchWithTimeout(`${API_URL}/rag-background`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -223,7 +223,7 @@ function useChatApi(sessionId, setSessionId) {
     try {
       console.log("更新流式处理后的会话:", sessionId);
 
-      const response = await fetchWithTimeout(`${API_URL}/status`, {
+      const response = await fetchWithTimeout(`${API_URL}/status-background`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -412,7 +412,7 @@ function useChatApi(sessionId, setSessionId) {
       // 方法 1: 使用 JSON 格式的 POST 请求，设置明确的 Content-Type
       try {
         console.log("尝试方法 1: JSON POST");
-        const response = await fetchWithTimeout(`${API_URL}/status`, {
+        const response = await fetchWithTimeout(`${API_URL}/status-background`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -441,7 +441,7 @@ function useChatApi(sessionId, setSessionId) {
           params.append('requestId', requestId);
           params.append('sessionId', sessionId);
 
-          const response = await fetchWithTimeout(`${API_URL}/status`, {
+          const response = await fetchWithTimeout(`${API_URL}/status-background`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',

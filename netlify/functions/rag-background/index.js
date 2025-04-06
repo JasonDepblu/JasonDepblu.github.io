@@ -558,7 +558,7 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
   } catch (error) {
     console.error(`Error processing request ${requestId}:`, error);
 
-    // Update request status to failed
+    // Update request status-background to failed
     try {
       sessionManager.updateRequestStatus(sessionId, requestId, 'failed', {
         error: error.message,
@@ -701,7 +701,7 @@ exports.handler = async (event, context) => {
     }
 
     // Create or get session
-    // In rag/index.js - Add debugging for session management
+    // In rag-background/index.js - Add debugging for session management
     // When creating a session or handling a request, add more logging:
     if (!sessionId || !sessionManager.getSession(sessionId)) {
       sessionId = crypto.randomUUID();

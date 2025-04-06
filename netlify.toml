@@ -19,10 +19,10 @@
 [functions]
   directory = "netlify/functions"
 
-[functions.rag]
+[functions.rag-background]
   timeout = 60
 
-[functions.status]
+[functions.status-background]
   timeout = 30
 
 [[redirects]]
@@ -34,7 +34,7 @@
 #[[redirects]]
 #  from = "/*"
 #  to = "/index.html"
-#  status = 200
+#  status-background = 200
 #  force = false
 
 [[redirects]]

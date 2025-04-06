@@ -129,7 +129,7 @@ function updateSession(sessionId, field, value) {
   return writeSessions(sessions);
 }
 
-// Update request status
+// Update request status-background
 function updateRequestStatus(sessionId, requestId, status, data = {}) {
   const sessions = readSessions();
 

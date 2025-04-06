@@ -256,7 +256,7 @@ author: Jason
       console.log("Sending stream request to:", streamConfig.apiEndpoint);
       const response = await fetch(streamConfig.apiEndpoint, options);
 
-      // Check response status
+      // Check response status-background
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Stream API error response:", errorText);

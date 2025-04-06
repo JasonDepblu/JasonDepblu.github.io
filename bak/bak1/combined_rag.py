@@ -181,9 +181,9 @@ def process_rag_request(request_id, session_id, question, event=None):
             "assistant": answer
         })
 
-        # Update request status
+        # Update request status-background
         sessions[session_id]["current_request"].update({
-            "status": "completed",
+            "status-background": "completed",
             "answer": answer,
             "completed_at": time.time()
         })
@@ -194,10 +194,10 @@ def process_rag_request(request_id, session_id, question, event=None):
         import traceback
         print(traceback.format_exc())
 
-        # Update request status on error
+        # Update request status-background on error
         if session_id in sessions and "current_request" in sessions[session_id]:
             sessions[session_id]["current_request"].update({
-                "status": "failed",
+                "status-background": "failed",
                 "error": str(e),
                 "completed_at": time.time()
             })
@@ -241,11 +241,11 @@ def lambda_handler(event, context):
         # Generate a request ID for async processing
         request_id = str(uuid.uuid4())
 
-        # Store the request details for status checking
+        # Store the request details for status-background checking
         sessions[session_id]["current_request"] = {
             "id": request_id,
             "question": question,
-            "status": "processing",
+            "status-background": "processing",
             "started_at": time.time()
         }
 
@@ -288,7 +288,7 @@ def lambda_handler(event, context):
 
 
 def get_status(session_id, request_id):
-    """Get the status of a request."""
+    """Get the status-background of a request."""
     if session_id not in sessions:
         return {
             "statusCode": 404,
@@ -305,7 +305,7 @@ def get_status(session_id, request_id):
     return {
         "statusCode": 200,
         "body": json.dumps({
-            "status": current_request.get("status"),
+            "status-background": current_request.get("status-background"),
             "answer": current_request.get("answer"),
             "error": current_request.get("error")
         })
@@ -321,7 +321,7 @@ if __name__ == "__main__":
         # Command line interface mode
         command = sys.argv[1]
 
-        if command == "status" and len(sys.argv) >= 4:
+        if command == "status-background" and len(sys.argv) >= 4:
             session_id = sys.argv[2]
             request_id = sys.argv[3]
             result = get_status(session_id, request_id)
@@ -359,7 +359,7 @@ if __name__ == "__main__":
                 content_length = int(self.headers['Content-Length'])
                 post_data = self.rfile.read(content_length).decode('utf-8')
 
-                if self.path == "/api/rag":
+                if self.path == "/api/rag-background":
                     result = lambda_handler(post_data, {})
                     self.send_response(result.get("statusCode", 200))
                     self.send_header('Content-type', 'application/json')
@@ -367,7 +367,7 @@ if __name__ == "__main__":
                         self.send_header(key, value)
                     self.end_headers()
                     self.wfile.write(result.get("body", "{}").encode())
-                elif self.path == "/api/status":
+                elif self.path == "/api/status-background":
                     data = json.loads(post_data)
                     result = get_status(data.get("sessionId"), data.get("requestId"))
                     self.send_response(result.get("statusCode", 200))

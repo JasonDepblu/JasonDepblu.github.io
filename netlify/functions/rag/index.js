@@ -450,7 +450,7 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
 
     // 构建包含上下文的系统提示
     let systemPrompt = "你是一个Blog AI Assistant，你的名字叫Mandy.";
-    systemPrompt += conversationHistory;
+    // systemPrompt += conversationHistory;
     console.log("system prompt");
     if (contexts.length > 0) {
       systemPrompt += "若问题与blog内容（AI & LLM等技术）不相关，则答复拒绝，如果与以下内容相关，根据提供的博客文章内容回答用户问题：\n\n";
@@ -461,7 +461,7 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
       systemPrompt += "请使用中文回答以下问题,若问题与blog内容（AI & LLM等技术）不相关，则答复拒绝。";
     }
     console.log("system prompt：", systemPrompt);
-    console.log("system prompt：", usestream);
+    console.log("whether the usestream is true：", usestream);
 
      // 声明答案变量
     let answer;
@@ -476,7 +476,7 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
         model: SILICON_REASONING_MODEL,
         messages: [
           {role: 'system', content: systemPrompt},
-          {role: 'user', content: question}
+          {role: 'user', content: question+conversationHistory}
         ],
         parameters: {
           temperature: 0.7,
@@ -496,13 +496,15 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
         statusCode: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          // 'Access-Control-Allow-Origin': '*',
           'Cache-Control': 'no-cache'
         },
         body: JSON.stringify({
+          question,
           requestId: requestId,
           sessionId: sessionId,
           streamConfig: streamConfig,
+          stream: usestream,
           status: "streaming_prepared",
           timestamp: Date.now()
         })
@@ -535,7 +537,22 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
       }
 
       console.log(`Request ${requestId} processing completed successfully.`);
-      return answer;
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-cache'
+        },
+        body: JSON.stringify({
+          answer: answer,
+          requestId: requestId,
+          sessionId: sessionId,
+          stream: usestream,
+          status: "completed",
+          timestamp: Date.now()
+        })
+      };
     }
 
   } catch (error) {

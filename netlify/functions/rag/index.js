@@ -143,7 +143,7 @@ async function evaluateNeedForRAG(question, conversationHistory) {
         {
           model: SILICON_CHAT_MODEL,
           messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
+          temperature: 0.1,
           max_tokens: 10,
           stream: false
         },
@@ -460,8 +460,10 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
     } else {
       systemPrompt += "请使用中文回答以下问题,若问题与blog内容（AI & LLM等技术）不相关，则答复拒绝。";
     }
+    const userPrompt = `${question}\n${JSON.stringify(conversationHistory)}`;
     console.log("system prompt：", systemPrompt);
     console.log("whether the usestream is true：", usestream);
+    console.log("userPrompt：", userPrompt);
 
      // 声明答案变量
     let answer;
@@ -476,7 +478,7 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
         model: SILICON_REASONING_MODEL,
         messages: [
           {role: 'system', content: systemPrompt},
-          {role: 'user', content: question+conversationHistory}
+          {role: 'user', content: userPrompt}
         ],
         parameters: {
           temperature: 0.7,
@@ -491,12 +493,31 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
       });
       sessionManager.saveNow();
 
+      // console.log("testing streamConfig", streamConfig);
+      response = {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'no-cache'
+        },
+        body: JSON.stringify({
+          question,
+          requestId: requestId,
+          sessionId: sessionId,
+          streamConfig: streamConfig,
+          stream: usestream,
+          status: "streaming_prepared",
+          timestamp: Date.now()
+        })
+      }
+      console.log("return", JSON.parse(response.body).streamConfig);
       // Return streaming configuration for frontend to handle
       return {
         statusCode: 200,
         headers: {
           'Content-Type': 'application/json',
-          // 'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': '*',
           'Cache-Control': 'no-cache'
         },
         body: JSON.stringify({
@@ -541,7 +562,7 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
         statusCode: 200,
         headers: {
           'Content-Type': 'application/json',
-          // 'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': '*',
           'Cache-Control': 'no-cache'
         },
         body: JSON.stringify({
@@ -558,7 +579,7 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
   } catch (error) {
     console.error(`Error processing request ${requestId}:`, error);
 
-    // Update request status-background to failed
+    // Update request status to failed
     try {
       sessionManager.updateRequestStatus(sessionId, requestId, 'failed', {
         error: error.message,
@@ -570,7 +591,22 @@ async function processRagRequest(requestId, sessionId, question, usestream) {
     }
 
     // Return a failure message instead of throwing an error
-    return `对不起，我无法处理这个请求。请稍后再试。`;
+    // return `对不起，我无法处理这个请求。请稍后再试。`;
+        // 返回标准化的错误响应对象，而不是字符串
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      },
+      body: JSON.stringify({
+        error: "处理请求时出错: " + error.message,
+        requestId: requestId,
+        sessionId: sessionId,
+        status: "failed",
+        timestamp: Date.now()
+      })
+    };
   }
 }
 
@@ -701,7 +737,7 @@ exports.handler = async (event, context) => {
     }
 
     // Create or get session
-    // In rag-background/index.js - Add debugging for session management
+    // In rag/index.js - Add debugging for session management
     // When creating a session or handling a request, add more logging:
     if (!sessionId || !sessionManager.getSession(sessionId)) {
       sessionId = crypto.randomUUID();
@@ -740,9 +776,10 @@ exports.handler = async (event, context) => {
     // });
       // Wait for the result directly
     const result = await processRagRequest(requestId, sessionId, question, usestream);
-
+    // console.log(`结果是 ${result.json()}`);
     // Return the actual result to the client
     return result;
+
 
     // Return request ID for client polling
     return {

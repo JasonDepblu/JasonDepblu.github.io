@@ -123,88 +123,115 @@ function useChatApi(sessionId, setSessionId) {
         const maxRetries = 2;
         let lastError = null;
 
+        console.log("完整 API URL:", `${API_URL}/rag`);
+
         while (retries < maxRetries) {
           try {
-            console.log(`尝试请求 ${retries + 1}/${maxRetries}...`);
-            const response = await fetchWithTimeout(`${API_URL}/rag-background`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache'
-              },
-              body: JSON.stringify({
-                question,
-                sessionId: sessionId,
-                preferFastResponse: isSimpleQuestion && !useStream,
-                stream: useStream
-              })
-            }, 30000); // 30秒超时
 
-            if (!response.ok) {
-              const errorText = await response.text();
-              throw new Error(`服务器错误 (${response.status}): ${errorText}`);
-            }
+              console.log(`尝试请求 ${retries + 1}/${maxRetries}...`);
+              const response = await fetchWithTimeout(`${API_URL}/rag`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Cache-Control': 'no-cache'
+                },
+                body: JSON.stringify({
+                  question,
+                  sessionId: sessionId,
+                  preferFastResponse: isSimpleQuestion && !useStream,
+                  stream: useStream
+                })
+              }, 30000); // 30秒超时
 
-            const data = await response.json();
-            console.log("API响应收到:", Object.keys(data));
+              // console.log("API响应状态:", JSON.parse(response.body));
 
-            if (data.sessionId) {
-              console.log(`更新会话ID: ${data.sessionId}`);
-              setSessionId(data.sessionId);
-            }
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`服务器错误 (${response.status}): ${errorText}`);
+              }
 
-            if (data.answer) {
-              console.log("收到后端直接回答");
-              return {
-                directAnswer: true,
-                answer: data.answer
-              };
-            }
 
-            if (data.streamConfig) {
-              console.log("收到流式配置:", {
-                hasEndpoint: !!data.streamConfig.apiEndpoint,
-                hasApiKey: !!data.streamConfig.apiKey,
-                model: data.streamConfig.model
-              });
+
+              const data = await response.json();
+              // console.log("API原始响应:", data);
+              //
+              // const responseText = await response.text();
+              //
+              // // 尝试解析JSON
+              // let data;
+              // try {
+              //   data = JSON.parse(responseText);
+              //   console.log("API响应解析成功:", Object.keys(data));
+              // } catch (parseError) {
+              //   console.error("JSON解析错误:", parseError.message);
+              //   throw new Error(`JSON解析失败: ${parseError.message}`);
+              // }
+              // // const data = reader
+              //
+              console.log("API响应收到:", Object.keys(data));
+
+              if (data.sessionId) {
+                console.log(`更新会话ID: ${data.sessionId}`);
+                setSessionId(data.sessionId);
+              }
+
+              if (data.answer) {
+                console.log("收到后端直接回答");
+                return {
+                  directAnswer: true,
+                  answer: data.answer
+                };
+              }
+
+              if (data.streamConfig) {
+                console.log("收到流式配置:", {
+                  hasEndpoint: !!data.streamConfig.apiEndpoint,
+                  hasApiKey: !!data.streamConfig.apiKey,
+                  model: data.streamConfig.model
+                });
+                return {
+                  directAnswer: false,
+                  streamConfig: data.streamConfig,
+                  requestId: data.requestId
+                };
+              }
+
+              if (data.quickResponse) {
+                console.log("收到快速响应");
+                return {
+                  directAnswer: false,
+                  quickResponse: data.quickResponse,
+                  requestId: data.requestId
+                };
+              }
+
+              if (data.fallbackToStandard) {
+                console.log("不支持流式响应，回退到标准处理");
+                return initiateRequest(question, false);
+              }
+
+              console.log(`收到请求ID: ${data.requestId}`);
               return {
                 directAnswer: false,
-                streamConfig: data.streamConfig,
-                requestId: data.requestId
+                requestId: data.requestId,
+                sessionId: data.sessionId || sessionId
               };
-            }
 
-            if (data.quickResponse) {
-              console.log("收到快速响应");
-              return {
-                directAnswer: false,
-                quickResponse: data.quickResponse,
-                requestId: data.requestId
-              };
-            }
-
-            if (data.fallbackToStandard) {
-              console.log("不支持流式响应，回退到标准处理");
-              return initiateRequest(question, false);
-            }
-
-            console.log(`收到请求ID: ${data.requestId}`);
-            return {
-              directAnswer: false,
-              requestId: data.requestId,
-              sessionId: data.sessionId || sessionId
-            };
-          } catch (error) {
-            lastError = error;
-            retries++;
-            console.warn(`请求尝试${retries}失败: ${error.message}`);
-
-            if (retries < maxRetries) {
-              const delay = Math.pow(2, retries) * 1000;
-              console.log(`${delay}ms后重试...`);
-              await new Promise(resolve => setTimeout(resolve, delay));
-            }
           }
+          catch
+            (error)
+            {
+              lastError = error;
+              retries++;
+              console.warn(`请求尝试${retries}失败: ${error.message}`);
+
+              if (retries < maxRetries) {
+                const delay = Math.pow(2, retries) * 1000;
+                console.log(`${delay}ms后重试...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+              }
+            }
+
         }
 
         throw lastError || new Error('所有请求尝试均失败');
@@ -223,7 +250,7 @@ function useChatApi(sessionId, setSessionId) {
     try {
       console.log("更新流式处理后的会话:", sessionId);
 
-      const response = await fetchWithTimeout(`${API_URL}/status-background`, {
+      const response = await fetchWithTimeout(`${API_URL}/status`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -312,7 +339,9 @@ function useChatApi(sessionId, setSessionId) {
       const decoder = new TextDecoder("utf-8");
       let fullResponse = '';
 
-      // 处理流式数据
+      // 初始化全局缓冲区
+      let buffer = '';
+
       while (true) {
         const { done, value } = await reader.read();
 
@@ -321,15 +350,24 @@ function useChatApi(sessionId, setSessionId) {
           break;
         }
 
-        // 解码数据块
-        const chunk = decoder.decode(value);
+        // 使用流式解码器并追加到缓冲区
+        const chunk = decoder.decode(value, { stream: true });
         console.log("接收到数据块，大小:", chunk.length);
 
-        const lines = chunk.split('\n');
+        // 将新读取的数据追加到缓冲区
+        buffer += chunk;
 
+        // 按行拆分缓冲区内容
+        const lines = buffer.split('\n');
+
+        // 可能最后一行数据是不完整的，保留最后一部分
+        buffer = lines.pop() || '';
+
+        // 逐行处理数据
         for (const line of lines) {
           if (line.startsWith('data:')) {
             const data = line.slice(5).trim();
+            console.log("接收到数据:", data);
 
             if (data === '[DONE]') {
               continue;
@@ -337,7 +375,11 @@ function useChatApi(sessionId, setSessionId) {
 
             try {
               const parsed = JSON.parse(data);
-              if (parsed.choices && parsed.choices[0].delta && parsed.choices[0].delta.content) {
+              if (parsed.choices &&
+                  parsed.choices[0] &&
+                  parsed.choices[0].delta &&
+                  parsed.choices[0].delta.content
+              ) {
                 const content = parsed.choices[0].delta.content;
                 fullResponse += content;
 
@@ -345,6 +387,7 @@ function useChatApi(sessionId, setSessionId) {
                 onMessageUpdate(fullResponse);
               }
             } catch (parseError) {
+              // 如果 JSON 解析失败，记录异常，后续可根据实际情况进一步调整重试逻辑
               console.warn("无法解析流式数据块:", parseError.message);
             }
           }
@@ -412,7 +455,7 @@ function useChatApi(sessionId, setSessionId) {
       // 方法 1: 使用 JSON 格式的 POST 请求，设置明确的 Content-Type
       try {
         console.log("尝试方法 1: JSON POST");
-        const response = await fetchWithTimeout(`${API_URL}/status-background`, {
+        const response = await fetchWithTimeout(`${API_URL}/status`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -441,13 +484,14 @@ function useChatApi(sessionId, setSessionId) {
           params.append('requestId', requestId);
           params.append('sessionId', sessionId);
 
-          const response = await fetchWithTimeout(`${API_URL}/status-background`, {
+          const response = await fetchWithTimeout(`${API_URL}/status`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
               'Cache-Control': 'no-cache'
             },
-            body: params
+            body:
+              params
           }, 10000); // 10秒超时
 
           if (response.ok) {

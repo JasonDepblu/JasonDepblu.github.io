@@ -3,7 +3,7 @@
 
 [build]
 #  command = "./build-integrated.sh" # "jekyll build " # && npm run build:chat
-  pubilish = "build"
+#  pubilish = "build"
   publish = "_site"
   functions = "netlify/functions"
 
@@ -19,11 +19,11 @@
 [functions]
   directory = "netlify/functions"
 
-[functions.rag-background]
+[functions.rag]
   timeout = 60
 
-[functions.status-background]
-  timeout = 30
+[functions.status]
+  timeout = 60
 
 [[redirects]]
   from = "/functions/*"
@@ -34,7 +34,7 @@
 #[[redirects]]
 #  from = "/*"
 #  to = "/index.html"
-#  status-background = 200
+#  status = 200
 #  force = false
 
 [[redirects]]

@@ -1,4 +1,4 @@
-// functions/status-background/index.js
+// functions/status/index.js
 const { sessionManager, readSessions } = require('../utils/session-manager');
 
 // 调试标志
@@ -290,7 +290,7 @@ exports.handler = async (event, context) => {
       };
     }
   } catch (error) {
-    console.error("Error in status-background handler:", error);
+    console.error("Error in status handler:", error);
     return {
       statusCode: 500,
       headers: {

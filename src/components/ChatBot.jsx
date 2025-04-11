@@ -292,7 +292,6 @@ function ChatBot() {
 
   return (
     <div id="chat-container">
-      <h1>Q & A</h1>
       <MessageList
         messages={messages}
         thinking={thinking}

@@ -2,7 +2,7 @@
   RUBY_VERSION = "3.3.5"
 
 [build]
-#  command = "./build-integrated.sh" # "jekyll build " # && npm run build:chat
+  command = "./build-integrated.sh" # "jekyll build " # && npm run build:chat
 #  pubilish = "build"
   publish = "_site"
   functions = "netlify/functions"

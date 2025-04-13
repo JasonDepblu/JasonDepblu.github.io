@@ -128,7 +128,7 @@ async function evaluateNeedForRAG(question, conversationHistory) {
       助手: ${item.assistant}
       `).join('\n')}
       
-      如果问题是关于指定该blog的内容或论文相关内容，涉及AI、大模型LLM、强化学习范围，请回答 "NEED_RAG"。
+      如果问题是关于指定概念解释、该blog的内容或论文相关内容，涉及AI、大模型LLM、强化学习范围，请回答 "NEED_RAG"。
       如果问题是闲聊、打招呼、感谢或简单的后续问题，请回答 "NO_RAG"。
       只返回 "NEED_RAG" 或 "NO_RAG"，不要有其他文字。
      `;

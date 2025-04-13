@@ -256,7 +256,7 @@ async function generateAnswer(question, contexts, usestream=false, conversationH
 
     if (contexts.length > 0) {
       systemPrompt = `你是一个Blog AI Assistant，你的名字叫Mandy，根据提供的博客文章内容回答用户问题。如果提供的上下文中没有答案，请说明并给出你的最佳回答。
-回答中应包含相关链接（如果有），保持回答简洁明了，直接针对用户问题。使用Markdown格式。`;
+回答中应包含相关链接（如果有），保持回答简洁明了，不直接展示conversationHistory以及上下文中不相关的内容，直接针对用户问题精准回答。使用Markdown格式。`;
 
       contextText = contexts.map(ctx =>
         `标题: ${ctx.title}\n链接: ${ctx.url}\n内容: ${ctx.content}`

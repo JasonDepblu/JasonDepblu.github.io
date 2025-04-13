@@ -21,7 +21,7 @@ const SILICONE_API_KEY = process.env.SILICONE_API_KEY; // Silicon Flow API key
 
 // Model configuration
 const EMBEDDING_MODEL = 'Pro/BAAI/bge-m3'; // Silicon Flow embedding model
-const SILICON_CHAT_MODEL = 'Qwen/QwQ-32B'; // Model for RAG judgment (changed to QwQ-32B)
+const SILICON_CHAT_MODEL = 'Qwen/Qwen2.5-14B-Instruct'; // Model for RAG judgment (changed to QwQ-32B)
 const SILICON_REASONING_MODEL = 'Qwen/QwQ-32B'; // Model for answer generation (changed to QwQ-32B)
 
 // Detect Netlify environment

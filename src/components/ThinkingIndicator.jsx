@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 
-function ThinkingIndicator({ id, text = '思考中', attempts = 0 }) {
+function ThinkingIndicator({ id, text = 'thinking', attempts = 0 }) {
   const intervalRef = useRef(null);
   const dotsRef = useRef(null);
 
   // 根据轮询次数选择不同的提示文本
   const thinkingTexts = [
-    '思考中',
+    'thinking',
     '搜索知识库中',
     '整理回答中',
     '正在生成回答',

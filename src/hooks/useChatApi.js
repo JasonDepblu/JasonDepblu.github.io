@@ -120,7 +120,7 @@ function useChatApi(sessionId, setSessionId) {
         }
 
         let retries = 0;
-        const maxRetries = 2;
+        const maxRetries = 1;
         let lastError = null;
 
         console.log("完整 API URL:", `${API_URL}/rag`);

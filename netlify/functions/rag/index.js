@@ -180,7 +180,7 @@ async function evaluateNeedForRAG(question, conversationHistory) {
 
 // Retrieve context from Pinecone
 // 修改 retrieveContext 函数
-async function retrieveContext(queryEmbedding, topK = 3) {
+async function retrieveContext(queryEmbedding, topK = 8) {
   try {
     console.log("从 Pinecone 检索上下文...");
 
@@ -212,7 +212,7 @@ async function retrieveContext(queryEmbedding, topK = 3) {
 }
 
 // Add general retry function
-async function retryOperation(operation, maxRetries = 2, delay = 1000) {
+async function retryOperation(operation, maxRetries = 1, delay = 1000) {
   let lastError;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {

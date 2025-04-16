@@ -11,7 +11,9 @@ import uuid
 import time
 from pathlib import Path
 import requests
+from dotenv import load_dotenv
 from pinecone import Pinecone
+load_dotenv()
 
 # 使用新版 UnstructuredLoader 替换旧版 UnstructuredFileLoader
 from langchain_community.document_loaders import UnstructuredMarkdownLoader
@@ -19,11 +21,11 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # %%
 # 定义路径 - 直接读取 _posts 文件夹，而非 _site
-POSTS_DIR = "/Users/depblu/Library/Mobile Documents/com~apple~CloudDocs/POSTS"
+POSTS_DIR = "/Users/depblu/Library/Mobile Documents/com~apple~CloudDocs/POSTS/to_be_posted"
 BATCH_SIZE = 20  # 为更好错误处理而减少批次大小
 
 # 初始化 Pinecone
-PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
+PINECONE_API_KEY = os.environ.get('PINECONE_API_KEY')
 if not PINECONE_API_KEY:
     raise ValueError("PINECONE_API_KEY 环境变量是必须的")
 
@@ -39,7 +41,8 @@ try:
     if PINECONE_INDEX_NAME not in [index.name for index in index_list.indexes]:
         pc.create_index(
             name=PINECONE_INDEX_NAME,
-            spec={"dimension": PINECONE_DIMENSION, "metric": "cosine"}
+            spec={"dimension": PINECONE_DIMENSION,
+                  "metric": "cosine"}
         )
         print(f"Created new index: {PINECONE_INDEX_NAME}")
     else:
@@ -99,7 +102,8 @@ def get_embedding(text, retries=3, delay=2):
     }
     payload = {
         "model": EMBEDDING_MODEL,
-        "input": text
+        "input": text,
+        "encoding_format": "float"
     }
     for attempt in range(retries):
         try:
@@ -198,32 +202,26 @@ def process_and_index_files():
                 embedding = get_embedding(chunk)
                 if embedding:
                     vector = {
-                        "posts",
-                              [
-                                  {
-                                    "id": vector_id,
-                                    "values": embedding,
-                                    "metadata":
-                                        {
-                                            "title": title,
-                                            "url": url_path,
-                                            "content": chunk,
-                                            "chunk_index": i,
-                                            "source_file": basename,
-                                            "date": frontmatter.get("date", ""),
-                                            "categories": frontmatter.get("categories", []),
-                                            "tags": frontmatter.get("tags", [])
-                                        }
-                                  }
-                              ]
+                        "id": vector_id,
+                        "values": embedding,
+                        "metadata":{
+                                "title": title,
+                                "url": url_path,
+                                "content": chunk,
+                                "chunk_index": i,
+                                "source_file": basename,
+                                "date": frontmatter.get("date", ""),
+                                "categories": frontmatter.get("categories", []),
+                                "tags": frontmatter.get("tags", [])
+                        }
                     }
                     post_vectors.append(vector)
                     vectors_batch.append(vector)
                     # 批量索引
                     if len(vectors_batch) >= BATCH_SIZE:
                         try:
-                            index.upsert(vectors=vectors_batch)
-                            print(f"Indexed batch of {len(vectors_batch)} vectors")
+                            index.upsert(vectors_batch)
+                            print(f"Indexed batch of {len(vectors_batch)} vectors in namespace 'myblog'")
                             vectors_batch = []
                         except Exception as e:
                             print(f"Error indexing batch: {e}")
@@ -241,7 +239,7 @@ def process_and_index_files():
     # 索引剩余的向量
     if vectors_batch:
         try:
-            index.upsert(vectors=vectors_batch)
+            index.upsert(vectors_batch)
             print(f"Indexed final batch of {len(vectors_batch)} vectors")
         except Exception as e:
             print(f"Error indexing final batch: {e}")

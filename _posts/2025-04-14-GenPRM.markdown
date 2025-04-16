@@ -1,0 +1,81 @@
+---
+layout: post
+title: "GenPRM: Scaling Test-Time Compute of Process Reward Models via Generative Reasoning"
+date: 2025-04-14
+reading_time: 15 min
+author: Jason Deng
+categories: [LLM, papers]
+tags: [scaling_test-time, reasoning, reward_model]
+excerpt: “提出了一种新的生成式过程奖励模型GenPRM，通过链式推理和代码验证提升了过程监督能力，显著超越传统模型，并在数学推理任务中表现突出，展示了生成推理与测试时计算扩展的有效结合。未来可探索其在编程任务中的应用。”
+
+---
+
+## **论文信息**
+**Paper:** 《GenPRM: Scaling Test-Time Compute of Process Reward Models via Generative Reasoning》
+
+**Paper URL:** https://arxiv.org/abs/2504.00891
+
+**Author:** Jian Zhao, Runze Liu, Kaiyan Zhang, Zhimu Zhou, Junqi Gao, Dong Li, Jiafei Lyu, Zhouyi Qian, Biqing Qi, Xiu Li, Bowen Zhou
+
+**organization:** Tsinghua University, Shanghai AI Laboratory, BUPT, 4Harbin Institute of Technology
+
+**一、研究背景与核心问题**
+
+论文指出，大语言模型（LLMs）最近的发展中使用过程奖励模型（Process Reward Models，PRMs）作为验证器（Verifier）能够显著提升LLM的表现。然而现有PRMs存在以下几个问题：
+
+1. **过程监督数据有限**，泛化能力较差；
+2. 传统的PRMs **依赖于预测单一标量值（Scalar value）**，未充分利用大语言模型的生成能力；
+3. **无法有效扩展测试时计算（Test-Time Scaling，TTS）** 的能力。
+
+为了克服上述挑战，作者提出了一种称为 **GenPRM** 的生成式过程奖励模型。
+
+**二、研究的主要贡献与方法**
+
+**1. 提出生成式过程奖励模型（GenPRM）**
+
+- 将过程监督重新定义为生成任务（Generative Task），而非单纯的判别性评分任务（Discriminative Task）。
+- 使用**链式推理（Chain-of-Thought，CoT）** 并结合**代码验证（Code Verification）**来明确验证每个推理步骤。
+
+**2. 提出“相对进展估计（Relative Progress Estimation，RPE）”方法**
+
+- 该方法利用蒙特卡洛估计（Monte Carlo Estimation，MC）来确定步骤是否正确和有益，从而获得更精确的监督标签。
+
+**3. 提出推理与代码验证相结合的数据生成与过滤框架**
+
+- 设计了一个三阶段流水线自动生成高质量的推理步骤及其监督标签：
+    - **步骤强制生成（Step Forcing）**：明确生成每个步骤；
+    - **相对进展评估（RPE）**：用于判断每个步骤是否对整体推理进程有益；
+    - **推理与代码验证**：通过LLM生成CoT推理并执行生成的代码来进行验证，再进行共识过滤（Consensus Filtering），确保数据质量。
+- 
+
+**三、实验验证与结果**
+
+实验涉及以下任务和数据集：
+
+- **ProcessBench**（专门评估过程监督能力的基准）
+- 数学推理任务：MATH、AMC23、AIME24、Minerva Math等。
+
+**实验结论：**
+
+- GenPRM在**ProcessBench**及数学推理任务上均**显著超过传统的分类型PRMs**；
+- GenPRM的小模型（如1.5B、7B规模）通过测试时计算扩展（如多数投票，Majority Voting）即可超越更大的PRMs甚至GPT-4o；
+- GenPRM作为Critic模型（评价模型）能明显提升策略模型（Policy Model）的表现，进行多个迭代后效果更加突出。
+
+具体而言：
+
+- GenPRM-7B模型通过测试时计算扩展在ProcessBench上超过了规模更大的Qwen2.5-Math-PRM-72B；
+- GenPRM的Critic能力使得策略模型性能显著提高，远超基线（如Self-Refine和DeepSeek-R1-Distill-Qwen-7B）。
+
+**四、研究亮点与启发**
+
+- 本研究提出了一种新的PRMs监督范式，即将过程监督任务定义为生成式任务，并引入显式的推理与代码验证，极大地提升了PRMs的有效性与可扩展性；
+- 提供了一种更好的自动数据生成与过滤框架，降低了数据标注成本；
+- 明确了PRMs与Critic模型的结合路径，展示了利用测试时计算扩展进一步提升模型能力的潜力。
+
+**五、存在的限制与未来研究方向**
+
+- GenPRM的生成式推理过程带来了一定的计算开销；
+- 当前研究聚焦于数学推理任务，未来可探索GenPRM在编程任务及其他通用推理任务中的表现；
+- 进一步研究如何通过强化学习等方法来优化生成推理过程。
+
+综上所述，这篇论文的核心贡献是提出了GenPRM这种创新的生成式过程奖励模型，显著提高了过程监督和验证能力，展示了生成推理与测试时计算扩展的有效结合。

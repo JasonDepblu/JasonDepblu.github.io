@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GenPRM: Scaling Test-Time Compute of Process Reward Models via Generative Reasoning</title>
+
+  <!-- MathJax -->
+  <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script>
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+        processEscapes: true
+      },
+      "HTML-CSS": {
+      scale: 70  // 调整公式字体大小，默认 100（百分比）
+      },
+      CommonHTML: {
+      scale: 70  // 如果使用 CommonHTML 输出，也需要设置
+      }
+    });
+  </script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/assets/css/custom.css">
+</head>
+
+<body class="post-layout">
+<!--     Header -->
+    <header class="header">
+      <div class="container">
+        <span class="logo">🌟 Jason's Blog</span>
+        <nav class="nav">
+          <ul>
+            
+              <li><a href="/">Posts</a></li>
+            
+              <li><a href="/archive/">Archive</a></li>
+            
+              <li><a href="/chat/">Q&A</a></li>
+            
+              <li><a href="/tags/">Tags</a></li>
+            
+              <li><a href="/about/">About</a></li>
+            
+              <li><a href="/contact/">Contact</a></li>
+            
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <article>
+        <h1>GenPRM: Scaling Test-Time Compute of Process Reward Models via Generative Reasoning</h1>
+        <div class="post-meta">
+          <span class="post-date">Date: April 14, 2025</span> |
+          <span class="reading-time">Estimated Reading Time: 15 min</span> |
+          <span class="post-author">Author: Jason Deng</span>
+        </div>
+        <main class="container">
+            <h2 id="论文信息"><strong>论文信息</strong></h2>
+<p><strong>Paper:</strong> 《GenPRM: Scaling Test-Time Compute of Process Reward Models via Generative Reasoning》</p>
+
+<p><strong>Paper URL:</strong> https://arxiv.org/abs/2504.00891</p>
+
+<p><strong>Author:</strong> Jian Zhao, Runze Liu, Kaiyan Zhang, Zhimu Zhou, Junqi Gao, Dong Li, Jiafei Lyu, Zhouyi Qian, Biqing Qi, Xiu Li, Bowen Zhou</p>
+
+<p><strong>organization:</strong> Tsinghua University, Shanghai AI Laboratory, BUPT, 4Harbin Institute of Technology</p>
+
+<p><strong>一、研究背景与核心问题</strong></p>
+
+<p>论文指出，大语言模型（LLMs）最近的发展中使用过程奖励模型（Process Reward Models，PRMs）作为验证器（Verifier）能够显著提升LLM的表现。然而现有PRMs存在以下几个问题：</p>
+
+<ol>
+  <li><strong>过程监督数据有限</strong>，泛化能力较差；</li>
+  <li>传统的PRMs <strong>依赖于预测单一标量值（Scalar value）</strong>，未充分利用大语言模型的生成能力；</li>
+  <li><strong>无法有效扩展测试时计算（Test-Time Scaling，TTS）</strong> 的能力。</li>
+</ol>
+
+<p>为了克服上述挑战，作者提出了一种称为 <strong>GenPRM</strong> 的生成式过程奖励模型。</p>
+
+<p><strong>二、研究的主要贡献与方法</strong></p>
+
+<p><strong>1. 提出生成式过程奖励模型（GenPRM）</strong></p>
+
+<ul>
+  <li>将过程监督重新定义为生成任务（Generative Task），而非单纯的判别性评分任务（Discriminative Task）。</li>
+  <li>使用<strong>链式推理（Chain-of-Thought，CoT）</strong> 并结合<strong>代码验证（Code Verification）</strong>来明确验证每个推理步骤。</li>
+</ul>
+
+<p><strong>2. 提出“相对进展估计（Relative Progress Estimation，RPE）”方法</strong></p>
+
+<ul>
+  <li>该方法利用蒙特卡洛估计（Monte Carlo Estimation，MC）来确定步骤是否正确和有益，从而获得更精确的监督标签。</li>
+</ul>
+
+<p><strong>3. 提出推理与代码验证相结合的数据生成与过滤框架</strong></p>
+
+<ul>
+  <li>设计了一个三阶段流水线自动生成高质量的推理步骤及其监督标签：
+    <ul>
+      <li><strong>步骤强制生成（Step Forcing）</strong>：明确生成每个步骤；</li>
+      <li><strong>相对进展评估（RPE）</strong>：用于判断每个步骤是否对整体推理进程有益；</li>
+      <li><strong>推理与代码验证</strong>：通过LLM生成CoT推理并执行生成的代码来进行验证，再进行共识过滤（Consensus Filtering），确保数据质量。</li>
+    </ul>
+  </li>
+  <li></li>
+</ul>
+
+<p><strong>三、实验验证与结果</strong></p>
+
+<p>实验涉及以下任务和数据集：</p>
+
+<ul>
+  <li><strong>ProcessBench</strong>（专门评估过程监督能力的基准）</li>
+  <li>数学推理任务：MATH、AMC23、AIME24、Minerva Math等。</li>
+</ul>
+
+<p><strong>实验结论：</strong></p>
+
+<ul>
+  <li>GenPRM在<strong>ProcessBench</strong>及数学推理任务上均<strong>显著超过传统的分类型PRMs</strong>；</li>
+  <li>GenPRM的小模型（如1.5B、7B规模）通过测试时计算扩展（如多数投票，Majority Voting）即可超越更大的PRMs甚至GPT-4o；</li>
+  <li>GenPRM作为Critic模型（评价模型）能明显提升策略模型（Policy Model）的表现，进行多个迭代后效果更加突出。</li>
+</ul>
+
+<p>具体而言：</p>
+
+<ul>
+  <li>GenPRM-7B模型通过测试时计算扩展在ProcessBench上超过了规模更大的Qwen2.5-Math-PRM-72B；</li>
+  <li>GenPRM的Critic能力使得策略模型性能显著提高，远超基线（如Self-Refine和DeepSeek-R1-Distill-Qwen-7B）。</li>
+</ul>
+
+<p><strong>四、研究亮点与启发</strong></p>
+
+<ul>
+  <li>本研究提出了一种新的PRMs监督范式，即将过程监督任务定义为生成式任务，并引入显式的推理与代码验证，极大地提升了PRMs的有效性与可扩展性；</li>
+  <li>提供了一种更好的自动数据生成与过滤框架，降低了数据标注成本；</li>
+  <li>明确了PRMs与Critic模型的结合路径，展示了利用测试时计算扩展进一步提升模型能力的潜力。</li>
+</ul>
+
+<p><strong>五、存在的限制与未来研究方向</strong></p>
+
+<ul>
+  <li>GenPRM的生成式推理过程带来了一定的计算开销；</li>
+  <li>当前研究聚焦于数学推理任务，未来可探索GenPRM在编程任务及其他通用推理任务中的表现；</li>
+  <li>进一步研究如何通过强化学习等方法来优化生成推理过程。</li>
+</ul>
+
+<p>综上所述，这篇论文的核心贡献是提出了GenPRM这种创新的生成式过程奖励模型，显著提高了过程监督和验证能力，展示了生成推理与测试时计算扩展的有效结合。</p>
+
+        </main>
+        
+        <div class="tags">
+            标签:
+            
+            <span class="tag">scaling_test-time</span>
+            
+            <span class="tag">reasoning</span>
+            
+            <span class="tag">reward_model</span>
+            
+        </div>
+        
+    </article>
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2025 Jason‘s Blog</p>
+    </footer>
+
+    <!-- Custom JavaScript -->
+    <script src="/assets/js/main.js"></script>
+</body>
+<!--<script src="/assets/js/main.js"></script>-->
+
+<!--&lt;!&ndash;<link rel="stylesheet" href="/assets/main.css">&ndash;&gt;-->
+<!--<link rel="stylesheet" href="/assets/css/custom.css">-->
+</html>

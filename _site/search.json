@@ -2,43 +2,50 @@
   "posts": [
     
     {
+      "title": "LangChain 开源 Deep Research 模块深度调研报告",
+      "url": "http://localhost:4000/agent/application/langchain/2025/08/03/LangChain_opensource_DeepResearch_module_report.html",
+      "date": "2025-08-03",
+      "content": "目录  引言  LangChain Deep Research 模块综述  主流 Deep Research 产品对比  LangChain 劣势与源码解析  结论与展望  参考文献引言“Deep Research”（深度研究）已成为大模型代理应用的新热点。不同于传统搜索仅返回结果列表，深度研究代理能够自主检索多源信息并产出长篇、引注明确的综合报告。OpenAI 在 2025 年推出了 De..."
+    },
+    
+    {
       "title": "GenPRM: Scaling Test-Time Compute of Process Reward Models via Generative Reasoning",
-      "url": "http://localhost:8889/llm/papers/2025/04/14/GenPRM.html",
+      "url": "http://localhost:4000/llm/papers/2025/04/14/GenPRM.html",
       "date": "2025-04-14",
       "content": "论文信息Paper: 《GenPRM: Scaling Test-Time Compute of Process Reward Models via Generative Reasoning》Paper URL: https://arxiv.org/abs/2504.00891Author: Jian Zhao, Runze Liu, Kaiyan Zhang, Zhimu Zhou, Ju..."
     },
     
     {
       "title": "Reasoning model的复现之路",
-      "url": "http://localhost:8889/llm/papers/2025/02/19/Reasoning-model-reproduced.html",
+      "url": "http://localhost:4000/llm/papers/2025/02/19/Reasoning-model-reproduced.html",
       "date": "2025-02-19",
       "content": "论文信息Paper: 《Scaling of Search and Learning: A Roadmap to Reproduce o1 from Reinforcement Learning Perspective》Paper URL: https://arxiv.org/html/2412.14135v1Author: Zhiyuan Zeng1 Qinyuan Cheng1∗ Zha..."
     },
     
     {
       "title": "Byte Latent Transformer: Patches Scale Better Than Tokens — 开创无tokenizer语言建模的新维度",
-      "url": "http://localhost:8889/llm/papers/2025/01/06/Byte-Latent-Transformer-Patches.html",
+      "url": "http://localhost:4000/llm/papers/2025/01/06/Byte-Latent-Transformer-Patches.html",
       "date": "2025-01-06",
       "content": "论文信息**Paper URL：** [https://arxiv.org/html/2412.09871v1](https://arxiv.org/html/2412.09871v1)**Author：** Artidoro Pagnoni Ram Pasunuru Pedro Rodriguez Benjamin Muller Margaret Li Chunting Zhou Lili..."
     },
     
     {
       "title": "Coconut：在连续潜在空间中的大语言模型推理范式研究",
-      "url": "http://localhost:8889/llm/papers/2024/12/25/reason-cot-post.html",
+      "url": "http://localhost:4000/llm/papers/2024/12/25/reason-cot-post.html",
       "date": "2024-12-25",
       "content": "Author: Shibo Hao, Sainbayar Sukhbaatar, DiJia Su, Xian Li, Zhiting Hu, Jason Weston, Yuandong Tian  FAIR at Meta  UC San Diego∗ Work done at MetaURL: https://arxiv.org/html/2412.06769v2Title: Trai..."
     },
     
     {
       "title": "Reasoning with REinforced Fine-Tuning",
-      "url": "http://localhost:8889/llm/papers/2024/12/12/my-first-post.html",
+      "url": "http://localhost:4000/llm/papers/2024/12/12/my-first-post.html",
       "date": "2024-12-12",
       "content": "论文主题《REFT: Reasoning with REinforced Fine-Tuning》提出了一种基于强化学习与微调相结合的创新方法，用以提升大语言模型（LLM）的推理能力。该方法旨在通过对推理路径的细化设计和多层次优化，在复杂推理任务中实现更高的准确性、解释性和效率。✨📘✨解决的问题当前的大语言模型在逻辑推理和复杂任务执行方面仍存在显著瓶颈。具体而言：✨  推理能力的局限性：虽然..."
     },
     
     {
       "title": "Super Weights in Large Language Model",
-      "url": "http://localhost:8889/llm/papers/2024/12/03/history1-post.html",
+      "url": "http://localhost:4000/llm/papers/2024/12/03/history1-post.html",
       "date": "2024-12-03",
       "content": "一、研究背景与动机1.1 前期研究基础大语言模型中的异常值研究主要沿两条线索发展：      权重异常值研究    •\t发现：Kovaleva等人(2021)首次在GPT-2中发现了权重异常值，这些异常值在预训练早期即显现，并显著影响模型的输出嵌入向量。    •\t挑战：禁用这些权重会显著降低性能，但研究未揭示这些权重的具体作用机制和普适性。        激活异常值研究    •\t发现：D..."
     }

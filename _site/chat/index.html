@@ -1,4 +1,44 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><link rel="icon" href="/chat/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#005000"/><meta name="description" content="Jason's Blog Chat Assistant"/><link rel="apple-touch-icon" href="/chat/logo192.png"/><link rel="manifest" href="/chat/asset-manifest.json"/><title>Chat Assistant</title><script defer="defer" src="/chat/static/js/main.265eec8b.js"></script><link href="/chat/static/css/main.7fa40f72.css" rel="stylesheet"></head><body>    <header class="header">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EKVJPJXV5K"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EKVJPJXV5K');
+</script>
+
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [["$", "$"], ["\\(", "\\)"]],
+      displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+      processEscapes: true
+    },
+    "HTML-CSS": {
+    scale: 100  // 调整公式字体大小，默认 100（百分比）
+    },
+    CommonHTML: {
+      scale: 100  // 如果使用 CommonHTML 输出，也需要设置
+    }
+  });
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jason‘s Blog</title>
+    <link rel="stylesheet" href="/assets/css/custom.css">
+    <link rel="icon" href="favicon.ico">
+  </head>
+  <body class="default-layout">
+<!--     Header -->
+    <header class="header">
       <div class="container">
         <span class="logo">🌟 Jason's Blog</span>
         <nav class="nav">
@@ -19,6 +59,26 @@
           </ul>
         </nav>
       </div>
-    </header><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div>    <footer class="footer">
+    </header>
+    <!--   Main Content -->
+    <main class="container">
+      <div id="root" style="width: 100%; height: 100%;"></div>
+
+<script>
+  // Debug the DOM
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log("Jekyll page loaded, root element exists:", !!document.getElementById('root'));
+  });
+</script>
+    </main>
+    <!-- Footer -->
+    <footer class="footer">
       <p>&copy; 2025 Jason‘s Blog</p>
-    </footer></body></html>
+    </footer>
+  </body>
+</html>
+
+<script src="/assets/js/main.js"></script>
+
+<link rel="stylesheet" href="/assets/main.css">
+<link rel="stylesheet" href="/assets/css/custom.css">

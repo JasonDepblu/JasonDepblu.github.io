@@ -1,0 +1,46 @@
+{
+  "name": "jason'blog",
+  "version": "0.1.0",
+  "homepage": "/chat",
+  "dependencies": {
+    "@pinecone-database/pinecone": "^5.1.1",
+    "axios": "^1.8.4",
+    "marked": "^15.0.7",
+    "node-fetch": "^3.3.2",
+    "nth-check": "^2.1.1",
+    "openai": "^4.87.4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-router-dom": "^7.4.0",
+    "react-scripts": "^5.0.1"
+  },
+  "resolutions": {
+    "debug": "^4.3.4",
+    "nth-check": "^2.0.1",
+    "postcss": "^8.4.31"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "dev:jekyll": "JEKYLL_ENV=development bundle exec jekyll serve --watch --incremental --port 8889",
+    "dev:react": "PUBLIC_URL=/chat react-scripts build && ./dev-integrated.sh",
+    "dev:functions": "npx netlify functions:serve",
+    "dev": "npm run dev:jekyll & (sleep 10 && npm run dev:react) & (sleep 15 && npm run dev:functions)"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.0",
+    "netlify-cli": "^19.0.3"
+  }
+}

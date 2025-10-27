@@ -1,0 +1,26 @@
+export default [
+  {
+    "title": "Posts",
+    "url": "/"
+  },
+  {
+    "title": "Archive",
+    "url": "/archive/"
+  },
+  {
+    "title": "Q&A",
+    "url": "/chat/"
+  },
+  {
+    "title": "Tags",
+    "url": "/tags/"
+  },
+  {
+    "title": "About",
+    "url": "/about/"
+  },
+  {
+    "title": "Contact",
+    "url": "/contact/"
+  }
+];

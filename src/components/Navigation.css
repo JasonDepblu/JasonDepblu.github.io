@@ -1,0 +1,112 @@
+/* src/components/JekyllNavigation.css */
+.main-navigation {
+  display: flex;
+  align-items: center;
+}
+
+.nav-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  position: relative;
+  margin: 0 1rem;
+}
+
+.nav-link, .nav-category {
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 0;
+  display: block;
+}
+
+.nav-link:hover {
+  color: #0066cc;
+}
+
+.nav-category {
+  cursor: default;
+}
+
+.nav-sublist {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  padding: 0.5rem 0;
+  min-width: 200px;
+  display: none;
+  z-index: 100;
+  list-style: none;
+}
+
+.nav-item:hover .nav-sublist {
+  display: block;
+}
+
+.nav-subitem {
+  margin: 0;
+}
+
+.nav-sublink {
+  padding: 0.5rem 1rem;
+  display: block;
+  text-decoration: none;
+  color: #333;
+}
+
+.nav-sublink:hover {
+  background-color: #f5f5f5;
+  color: #0066cc;
+}
+
+.navigation-loading, .navigation-error {
+  padding: 0.5rem;
+  color: #666;
+}
+
+.navigation-error {
+  color: #d32f2f;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .main-navigation {
+    width: 100%;
+  }
+
+  .nav-list {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .nav-item {
+    margin: 0;
+    width: 100%;
+  }
+
+  .nav-link, .nav-category {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .nav-sublist {
+    position: static;
+    display: block;
+    box-shadow: none;
+    border: none;
+    background: #f5f5f5;
+    padding: 0;
+  }
+
+  .nav-sublink {
+    padding-left: 2rem;
+  }
+}

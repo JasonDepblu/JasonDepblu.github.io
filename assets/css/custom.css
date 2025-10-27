@@ -726,3 +726,358 @@ article.container ol {
       width: 100%;
     }
   }
+
+/* ========== Mermaid Diagram Styles ========== */
+.mermaid {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  margin: 2rem 0;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 确保 Mermaid 在移动设备上可滚动 */
+@media (max-width: 768px) {
+  .mermaid {
+    padding: 15px;
+    font-size: 12px;
+  }
+}
+
+/* ========== Audio Player Styles ========== */
+.audio-player-container {
+  width: 100%;
+  margin: 2rem 0;
+  padding: 1rem 0;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.audio-player {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.audio-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.control-btn {
+  background: #4CAF50;
+  border: none;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.control-btn:hover {
+  background: #45a049;
+  transform: scale(1.05);
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+
+.time-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #555;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.time-separator {
+  color: #999;
+}
+
+.progress-container {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  height: 6px;
+  background: #ddd;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+.progress-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.progress-bar::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #4CAF50;
+  border-radius: 3px;
+  pointer-events: none;
+  transition: width 0.1s linear;
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.volume-control .control-btn {
+  background: #2196F3;
+  width: 36px;
+  height: 36px;
+}
+
+.volume-control .control-btn:hover {
+  background: #1976D2;
+}
+
+.volume-slider {
+  width: 80px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #ddd;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2196F3;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2196F3;
+  cursor: pointer;
+  border: none;
+}
+
+.speed-control {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  color: #555;
+  flex-shrink: 0;
+}
+
+.speed-control:hover {
+  border-color: #4CAF50;
+}
+
+.speed-control:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+
+/* 移动设备适配 */
+@media (max-width: 768px) {
+  .audio-player {
+    padding: 15px;
+  }
+
+  .audio-controls {
+    gap: 10px;
+  }
+
+  .control-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .volume-control {
+    display: none; /* 在小屏幕上隐藏音量控制 */
+  }
+
+  .time-display {
+    font-size: 12px;
+    min-width: 80px;
+  }
+
+  .progress-container {
+    min-width: 150px;
+    width: 100%;
+    order: 10; /* 移到下一行 */
+  }
+
+  .speed-control {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+}
+
+/* ========================================
+   Image Lightbox Styles
+   ======================================== */
+
+/* Lightbox Modal */
+.lightbox-modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  padding: 40px 20px;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.95);
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Close Button */
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 35px;
+  color: #ffffff;
+  font-size: 40px;
+  font-weight: bold;
+  transition: 0.3s;
+  cursor: pointer;
+  z-index: 10000;
+}
+
+.lightbox-close:hover,
+.lightbox-close:focus {
+  color: #bbb;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Lightbox Image */
+.lightbox-content {
+  margin: auto;
+  display: block;
+  max-width: 95%;
+  max-height: 90vh;
+  object-fit: contain;
+  animation: zoomIn 0.3s;
+}
+
+@keyframes zoomIn {
+  from {
+    transform: scale(0.8);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Caption */
+.lightbox-caption {
+  margin: auto;
+  display: block;
+  width: 80%;
+  max-width: 700px;
+  text-align: center;
+  color: #ccc;
+  padding: 10px 0;
+  font-size: 16px;
+}
+
+/* Make article images have a hover effect */
+article img {
+  transition: opacity 0.3s ease;
+}
+
+article img:hover {
+  opacity: 0.8;
+}
+
+/* Responsive Design for Lightbox */
+@media only screen and (max-width: 768px) {
+  .lightbox-close {
+    top: 10px;
+    right: 20px;
+    font-size: 30px;
+  }
+
+  .lightbox-content {
+    max-width: 98%;
+    max-height: 85vh;
+  }
+
+  .lightbox-caption {
+    width: 90%;
+    font-size: 14px;
+  }
+}

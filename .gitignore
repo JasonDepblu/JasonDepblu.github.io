@@ -1,19 +1,23 @@
+# Environment variables
 .env
 .env.local
 .env.*
 
+# Jekyll
 .sass-cache
 .jekyll-cache
 .jekyll-metadata
-vendor
-.DS_Store
-.DS_Store
-.DS_Store
-# 环境变量文件
+_site/
+vendor/
 
-
-# Local Netlify folder
-
+# System files
+.DS_Store
 
 # Local Netlify folder
 .netlify
+
+# Dependencies
+node_modules/
+
+# Build outputs
+build/

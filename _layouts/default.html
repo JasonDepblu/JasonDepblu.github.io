@@ -1,0 +1,67 @@
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EKVJPJXV5K"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EKVJPJXV5K');
+</script>
+
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [["$", "$"], ["\\(", "\\)"]],
+      displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+      processEscapes: true
+    },
+    "HTML-CSS": {
+    scale: 100  // 调整公式字体大小，默认 100（百分比）
+    },
+    CommonHTML: {
+      scale: 100  // 如果使用 CommonHTML 输出，也需要设置
+    }
+  });
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site.title }}</title>
+    <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
+    <link rel="icon" href="favicon.ico">
+  </head>
+  <body class="{% if page.layout == 'post' %}post-layout{% else %}default-layout{% endif %}">
+<!--     Header -->
+    <header class="header">
+      <div class="container">
+        <span class="logo">🌟 Jason's Blog</span>
+        <nav class="nav">
+          <ul>
+            {% for item in site.data.navigation %}
+              <li><a href="{{ item.url | relative_url }}">{{ item.title }}</a></li>
+            {% endfor %}
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <!--   Main Content -->
+    <main class="container">
+      {{ content }}
+    </main>
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; {{ site.time | date: "%Y" }} {{ site.title }}</p>
+    </footer>
+  </body>
+</html>
+
+<script src="{{ '/assets/js/main.js' | relative_url }}"></script>
+
+<link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
